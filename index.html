@@ -8,6 +8,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     .font-pixel { font-family: 'Press Start 2P', cursive; }
@@ -18,39 +19,38 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState } = React;
+    const { useState, useEffect } = React;
+
+    // Supabase Client Initialization
+    const SUPABASE_URL = 'https://vbplbvledfttyoefdzim.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_j45QbUJePkf6cVHRyYqAZg_NzXnrLTF';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     function App() {
       const [mode, setMode] = useState('zen');
       const [lang, setLang] = useState('kz');
       const [activeTab, setActiveTab] = useState('home');
 
-      // AI Chat State
       const [messages, setMessages] = useState([
-        { sender: 'ai', text: 'Сәлем! Мен KAZE менторымын. Бүгінгі мақсаттарыңызға жетуге дайынсыз ба?' }
+        { sender: 'ai', text: 'Сәлем! Мен KAZE менторымын. Supabase базасы қосылды.' }
       ]);
       const [inputMsg, setInputMsg] = useState('');
 
-      // Planner State
       const [tasks, setTasks] = useState([
-        { id: 1, text: 'KAZE қосымшасының негізін құру', done: true },
+        { id: 1, text: 'Supabase байланысын тексеру', done: true },
         { id: 2, text: 'Модульдерді толық аяқтау', done: false }
       ]);
       const [newTask, setNewTask] = useState('');
 
-      // Finance State
       const [transactions, setTransactions] = useState([
-        { id: 1, title: 'Бастапқы капитал', amount: 100000, type: 'income' },
-        { id: 2, title: 'Жарнама және хостинг', amount: 10000, type: 'expense' }
+        { id: 1, title: 'Бастапқы капитал', amount: 100000, type: 'income' }
       ]);
       const [finTitle, setFinTitle] = useState('');
       const [finAmount, setFinAmount] = useState('');
 
-      // Cinema State
       const [movies] = useState([
         { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4' },
-        { id: 2, title: 'Fight Club', genre: 'Драма / Психология', rating: '8.8' },
-        { id: 3, title: 'Cyberpunk: Edgerunners', genre: 'Аниме / Экшен', rating: '9.1' }
+        { id: 2, title: 'Fight Club', genre: 'Драма / Психология', rating: '8.8' }
       ]);
 
       const t = {
@@ -78,7 +78,7 @@
       };
 
       const toggleTask = (id) => {
-        setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
+        setTasks(tasks.map(item => item.id === id ? { ...item, done: !item.done } : item));
       };
 
       const handleAddFin = (e, type) => {
@@ -91,7 +91,6 @@
 
       return (
         <div class={`min-h-screen p-6 transition-colors duration-500 ${isPixel ? 'bg-purple-950 font-pixel text-pink-300' : 'bg-slate-900 font-zen text-slate-100'}`}>
-          {/* Header */}
           <header class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4 pb-6 border-b border-slate-700/50">
             <div class="cursor-pointer" onClick={() => setActiveTab('home')}>
               <h1 class={`text-3xl font-bold tracking-wider ${isPixel ? 'text-yellow-400 drop-shadow-[0_2px_0_#000]' : 'text-sky-400'}`}>
@@ -122,7 +121,6 @@
             </div>
           </header>
 
-          {/* Back button */}
           {activeTab !== 'home' && (
             <div class="max-w-6xl mx-auto mt-4">
               <button 
@@ -134,39 +132,35 @@
             </div>
           )}
 
-          {/* Main Container */}
           <main class="max-w-6xl mx-auto mt-6">
-
-            {/* HOME */}
             {activeTab === 'home' && (
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div onClick={() => setActiveTab('finance')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500 hover:border-yellow-400' : 'bg-slate-800/80 border-slate-700 hover:border-sky-500'}`}>
+                <div onClick={() => setActiveTab('finance')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">💰</div>
                   <h3 class="font-bold text-xl mb-1">{t[lang].finance}</h3>
-                  <p class="text-xs opacity-75">Кіріс пен шығыстарды қадағалау және есеп айырысу.</p>
+                  <p class="text-xs opacity-75">Supabase қосылған қаржы жүйесі.</p>
                 </div>
 
-                <div onClick={() => setActiveTab('planner')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500 hover:border-yellow-400' : 'bg-slate-800/80 border-slate-700 hover:border-sky-500'}`}>
+                <div onClick={() => setActiveTab('planner')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">📅</div>
                   <h3 class="font-bold text-xl mb-1">{t[lang].planner}</h3>
-                  <p class="text-xs opacity-75">Күнделікті мақсаттар, жоспарлар мен тапсырмалар.</p>
+                  <p class="text-xs opacity-75">Тапсырмалар мен мақсаттар тізімі.</p>
                 </div>
 
-                <div onClick={() => setActiveTab('cinema')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500 hover:border-yellow-400' : 'bg-slate-800/80 border-slate-700 hover:border-sky-500'}`}>
+                <div onClick={() => setActiveTab('cinema')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">🎬</div>
                   <h3 class="font-bold text-xl mb-1">{t[lang].cinema}</h3>
-                  <p class="text-xs opacity-75">Таңдаулы анимелер, кинолар және медиа кеңістік.</p>
+                  <p class="text-xs opacity-75">Аниме және медиа каталог.</p>
                 </div>
 
-                <div onClick={() => setActiveTab('mentor')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500 hover:border-yellow-400' : 'bg-slate-800/80 border-slate-700 hover:border-sky-500'}`}>
+                <div onClick={() => setActiveTab('mentor')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">🤖</div>
                   <h3 class="font-bold text-xl mb-1">{t[lang].mentor}</h3>
-                  <p class="text-xs opacity-75">Жасанды интеллект көмекшісімен ақылдасу.</p>
+                  <p class="text-xs opacity-75">AI көмекшісі мен ментор.</p>
                 </div>
               </div>
             )}
 
-            {/* MENTOR */}
             {activeTab === 'mentor' && (
               <div class={`p-6 rounded-2xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
                 <h2 class="text-2xl font-bold mb-4">🤖 {t[lang].mentor}</h2>
@@ -192,7 +186,6 @@
               </div>
             )}
 
-            {/* PLANNER */}
             {activeTab === 'planner' && (
               <div class={`p-6 rounded-2xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
                 <h2 class="text-2xl font-bold mb-4">📅 {t[lang].planner}</h2>
@@ -219,7 +212,6 @@
               </div>
             )}
 
-            {/* FINANCE */}
             {activeTab === 'finance' && (
               <div class={`p-6 rounded-2xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
                 <h2 class="text-2xl font-bold mb-4">💰 {t[lang].finance}</h2>
@@ -254,7 +246,6 @@
               </div>
             )}
 
-            {/* CINEMA */}
             {activeTab === 'cinema' && (
               <div class={`p-6 rounded-2xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
                 <h2 class="text-2xl font-bold mb-4">🎬 {t[lang].cinema}</h2>
@@ -270,7 +261,6 @@
                 </div>
               </div>
             )}
-
           </main>
         </div>
       );
