@@ -49,25 +49,20 @@
       const [finTitle, setFinTitle] = useState('');
       const [finAmount, setFinAmount] = useState('');
 
-      const [dreams, setDreams] = useState([
-        { id: 1, title: 'Жаңа ноутбук', targetAmount: 500000, currentAmount: 150000 }
-      ]);
-
       const [pixelUser, setPixelUser] = useState({ level: 1, xp: 40 });
 
-      // Time Capsules (Болашаққа хат) State
-      const [capsules, setCapsules] = useState([
-        { id: 1, title: '2027 жылғы маған хат', content: 'Сәлем, болашақтағы мен! KAZE супер-қосымшасы табысты болды ма?', unlockDate: '2027-01-01', locked: true }
+      const [capsules] = useState([
+        { id: 1, title: '2027 жылғы маған хат', content: 'Сәлем, болашақтағы мен!', unlockDate: '2027-01-01', locked: true }
       ]);
-      const [capTitle, setCapTitle] = useState('');
-      const [capContent, setCapContent] = useState('');
-      const [capDate, setCapDate] = useState('');
 
-      const [movies] = useState([
-        { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4' },
-        { id: 2, title: 'Fight Club', genre: 'Драма / Психология', rating: '8.8' },
-        { id: 3, title: 'Cyberpunk: Edgerunners', genre: 'Аниме / Экшен', rating: '9.1' }
+      // Movies & Anime (Кинозал) State
+      const [movies, setMovies] = useState([
+        { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4', desc: 'Гон мен Киллуаның әлемдік шытырман сапары.' },
+        { id: 2, title: 'Fight Club', genre: 'Драма / Психология', rating: '8.8', desc: 'Ішкі еркіндік пен сананы ояту.' },
+        { id: 3, title: 'Cyberpunk: Edgerunners', genre: 'Аниме / Экшен', rating: '9.1', desc: 'Найт-Сити көшелеріндегі атыс пен мақсат.' },
+        { id: 4, title: 'Interstellar', genre: 'Ғылыми / Фантастика', rating: '9.3', desc: 'Уақыт пен кеңістік арқылы сапар.' }
       ]);
+      const [selectedMovie, setSelectedMovie] = useState(null);
 
       const t = {
         kz: { 
@@ -148,21 +143,10 @@
         setTasks(tasks.map(item => item.id === id ? { ...item, done: !item.done } : item));
       };
 
-      const handleAddCapsule = (e) => {
-        e.preventDefault();
-        if (!capTitle || !capContent || !capDate) return;
-        const today = new Date().toISOString().split('T')[0];
-        const isLocked = capDate > today;
-        setCapsules([...capsules, { id: Date.now(), title: capTitle, content: capContent, unlockDate: capDate, locked: isLocked }]);
-        setCapTitle('');
-        setCapContent('');
-        setCapDate('');
-      };
-
       return (
         <div class={`min-h-screen p-6 transition-colors duration-500 ${isPixel ? 'bg-purple-950 font-pixel text-pink-300' : 'bg-slate-900 font-zen text-slate-100'}`}>
           <header class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4 pb-6 border-b border-slate-700/50">
-            <div class="cursor-pointer" onClick={() => setActiveTab('home')}>
+            <div class="cursor-pointer" onClick={() => { setActiveTab('home'); setSelectedMovie(null); }}>
               <h1 class={`text-3xl font-bold tracking-wider ${isPixel ? 'text-yellow-400 drop-shadow-[0_2px_0_#000]' : 'text-sky-400'}`}>
                 {currText.title}
               </h1>
@@ -225,7 +209,7 @@
               <div>
                 {activeTab !== 'home' && (
                   <div class="mb-4">
-                    <button onClick={() => setActiveTab('home')} class="text-sm px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                    <button onClick={() => { setActiveTab('home'); setSelectedMovie(null); }} class="text-sm px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
                       {currText.back}
                     </button>
                   </div>
@@ -264,37 +248,33 @@
                   </div>
                 )}
 
-                {activeTab === 'capsule' && (
+                {activeTab === 'cinema' && (
                   <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4">✉️ {currText.capsule}</h2>
-                    <form onSubmit={handleAddCapsule} class="space-y-3 mb-6 bg-slate-900/60 p-4 rounded-xl border border-slate-700">
-                      <input type="text" placeholder="Хаттың тақырыбы..." value={capTitle} onChange={(e) => setCapTitle(e.target.value)} class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm" />
-                      <textarea placeholder="Болашақтағы өзіңізге хат жазыңыз..." value={capContent} onChange={(e) => setCapContent(e.target.value)} class="w-full h-24 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm"></textarea>
-                      <div class="flex flex-wrap gap-2 items-center">
-                        <label class="text-xs opacity-75">Ашылатын күні:</label>
-                        <input type="date" value={capDate} onChange={(e) => setCapDate(e.target.value)} class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm" />
-                        <button type="submit" class="ml-auto bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-2 rounded-xl text-sm cursor-pointer">+ Капсуланы бекіту</button>
-                      </div>
-                    </form>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {capsules.map(item => (
-                        <div key={item.id} class="p-4 bg-slate-900 rounded-xl border border-slate-800 relative">
-                          <div class="flex justify-between items-center mb-2">
-                            <h3 class="font-bold text-sm">{item.title}</h3>
-                            <span class="text-xs bg-slate-800 px-2 py-1 rounded text-purple-400 font-bold">📅 {item.unlockDate}</span>
-                          </div>
-                          {item.locked ? (
-                            <div class="p-4 bg-slate-950/80 rounded-lg text-center border border-dashed border-slate-700 my-2">
-                              <span class="text-2xl">🔒</span>
-                              <p class="text-xs text-slate-400 mt-1">Бұл капсула {item.unlockDate} күніне дейін құпия болып жабық тұрады!</p>
-                            </div>
-                          ) : (
-                            <p class="text-xs text-slate-300 mt-2 bg-slate-950 p-3 rounded-lg border border-slate-800">{item.content}</p>
-                          )}
+                    <h2 class="text-2xl font-bold mb-4">🎬 {currText.cinema}</h2>
+                    {selectedMovie ? (
+                      <div class="p-6 bg-slate-900 rounded-xl border border-slate-700">
+                        <button onClick={() => setSelectedMovie(null)} class="text-xs text-sky-400 mb-4 underline cursor-pointer">← Каталогқа оралу</button>
+                        <h3 class="text-2xl font-bold mb-2">{selectedMovie.title}</h3>
+                        <p class="text-xs text-amber-400 mb-2">⭐ {selectedMovie.rating} | {selectedMovie.genre}</p>
+                        <p class="text-sm opacity-80 mb-6">{selectedMovie.desc}</p>
+                        <div class="p-8 bg-slate-950 rounded-xl text-center border border-slate-800">
+                          <span class="text-4xl">🍿</span>
+                          <p class="text-sm mt-2 text-sky-400 font-bold">Watch Party сеансы қосылды!</p>
+                          <p class="text-xs opacity-60 mt-1">Достарыңызды шақырып, бірге көріңіз.</p>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ) : (
+                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {movies.map(m => (
+                          <div key={m.id} onClick={() => setSelectedMovie(m)} class="p-4 bg-slate-900 rounded-xl border border-slate-800 cursor-pointer hover:border-sky-500 transition-all">
+                            <div class="h-32 bg-slate-800 rounded-lg mb-3 flex items-center justify-center text-3xl">🍿</div>
+                            <h3 class="font-bold text-sm mb-1">{m.title}</h3>
+                            <p class="text-xs opacity-75 mb-2">{m.genre}</p>
+                            <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded font-bold">⭐ {m.rating}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -347,13 +327,12 @@
                 {activeTab === 'dreams' && (
                   <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
                     <h2 class="text-2xl font-bold mb-4">🎯 {currText.dreams}</h2>
-                    <p class="text-sm opacity-75">Smart-копилка жүйесі белсенді.</p>
                   </div>
                 )}
 
-                {activeTab === 'cinema' && (
+                {activeTab === 'capsule' && (
                   <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4">🎬 {currText.cinema}</h2>
+                    <h2 class="text-2xl font-bold mb-4">✉️ {currText.capsule}</h2>
                   </div>
                 )}
 
