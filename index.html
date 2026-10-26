@@ -9,13 +9,43 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     .font-pixel { font-family: 'Press Start 2P', cursive; }
     .font-zen { font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    /* Smooth Animations & Custom Aesthetics */
+    .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .pixel-box {
+      box-shadow: 4px 4px 0px #000, -4px -4px 0px #fd4d96;
+    }
+    .pixel-box-zen {
+      box-shadow: 0 10px 30px -10px rgba(56, 189, 248, 0.15);
+    }
+    
+    .pulse-glow {
+      animation: pulseGlow 3s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+      100% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.5); }
+    }
+
+    .pixel-glow {
+      animation: pixelPulse 2s infinite alternate;
+    }
+    @keyframes pixelPulse {
+      0% { filter: drop-shadow(0 0 5px #facc15); }
+      100% { filter: drop-shadow(0 0 15px #facc15); }
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen">
+<body class="bg-slate-950 text-white min-h-screen selection:bg-sky-500 selection:text-white">
   <div id="root"></div>
 
   <script type="text/babel">
@@ -36,7 +66,6 @@
       const [isSignUp, setIsSignUp] = useState(false);
       const [authMsg, setAuthMsg] = useState('');
 
-      // Smart AI Mentor State
       const [messages, setMessages] = useState([
         { sender: 'ai', text: 'Сәлем! Мен KAZE ЖИ Менторымын. Өміріңді, қаржыңды және жоспарларыңды басқаруға қалай көмектесемін?' }
       ]);
@@ -50,42 +79,49 @@
       const [finTitle, setFinTitle] = useState('');
       const [finAmount, setFinAmount] = useState('');
 
-      const [pixelUser, setPixelUser] = useState({ level: 1, xp: 40 });
+      const [dreams, setDreams] = useState([
+        { id: 1, title: 'Жаңа ноутбук', targetAmount: 500000, currentAmount: 180000 }
+      ]);
+      const [dreamTitle, setDreamTitle] = useState('');
+      const [dreamTarget, setDreamTarget] = useState('');
+
+      const [pixelUser, setPixelUser] = useState({ level: 1, xp: 60 });
 
       const [capsules] = useState([
-        { id: 1, title: '2027 жылғы маған хат', content: 'Сәлем, болашақтағы мен!', unlockDate: '2027-01-01', locked: true }
+        { id: 1, title: '2027 жылғы маған хат', content: 'Сәлем, болашақтағы мен! KAZE супер-қосымшасы табысты болды ма?', unlockDate: '2027-01-01', locked: true }
       ]);
 
       const [movies] = useState([
-        { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4', episodes: '148 серия', desc: 'Гон мен Киллуаның сапары.' },
+        { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4', episodes: '148 серия', desc: 'Гон мен Киллуаның әлемдік сапары.' },
         { id: 2, title: 'Fight Club', genre: 'Драма / Психология', rating: '8.8', episodes: 'Толық метраж', desc: 'Ішкі еркіндік пен сананы ояту.' },
-        { id: 3, title: 'Cyberpunk: Edgerunners', genre: 'Аниме / Экшен', rating: '9.1', episodes: '10 серия', desc: 'Найт-Сити көшелері.' }
+        { id: 3, title: 'Cyberpunk: Edgerunners', genre: 'Аниме / Экшен', rating: '9.1', episodes: '10 серия', desc: 'Найт-Сити көшелері.' },
+        { id: 4, title: 'Interstellar', genre: 'Ғылыми / Фантастика', rating: '9.3', episodes: 'Толық метраж', desc: 'Уақыт пен кеңістік арқылы сапар.' }
       ]);
       const [selectedMovie, setSelectedMovie] = useState(null);
 
       const t = {
         kz: { 
-          title: "KAZE", sub: "Өмірді басқару өнері", zenBtn: "🌿 ZEN Режимі", pixelBtn: "🕹️ PIXEL Режимі", 
+          title: "KAZE", sub: "Өмірді басқару өнері", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "Қаржы", planner: "Планер", dreams: "Армандар", pixelRoom: "Pixel Бөлме", capsule: "Болашаққа хат", cinema: "Кинозал & Аниме", mentor: "ЖИ Ментор", 
           back: "← Басты бетке", send: "Жіберу", add: "Қосу", currency: "₸", logout: "Шығу" 
         },
         ru: { 
-          title: "KAZE", sub: "Искусство управлять жизнью", zenBtn: "🌿 ZEN Режим", pixelBtn: "🕹️ PIXEL Режим", 
+          title: "KAZE", sub: "Искусство управлять жизнью", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "Финансы", planner: "Планер", dreams: "Мечты", pixelRoom: "Pixel Комната", capsule: "Письмо в будущее", cinema: "Кинозал & Аниме", mentor: "ИИ Ментор", 
           back: "← На главную", send: "Отправить", add: "Добавить", currency: "₸", logout: "Выйти" 
         },
         en: { 
-          title: "KAZE", sub: "The Art of Life Control", zenBtn: "🌿 ZEN Mode", pixelBtn: "🕹️ PIXEL Mode", 
+          title: "KAZE", sub: "The Art of Life Control", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "Finance", planner: "Planner", dreams: "Dreams", pixelRoom: "Pixel Room", capsule: "Time Capsule", cinema: "Cinema & Anime", mentor: "AI Mentor", 
           back: "← Home", send: "Send", add: "Add", currency: "$", logout: "Logout" 
         },
         uz: { 
-          title: "KAZE", sub: "Hayotni boshqarish san'ati", zenBtn: "🌿 ZEN Rejimi", pixelBtn: "🕹️ PIXEL Rejimi", 
+          title: "KAZE", sub: "Hayotni boshqarish san'ati", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "Moliya", planner: "Reja", dreams: "Orzular", pixelRoom: "Pixel Xona", capsule: "Kapsula", cinema: "Kino & Anime", mentor: "AI Mentor", 
           back: "← Asosiy", send: "Yuborish", add: "Qo'shish", currency: "сўм", logout: "Chiqish" 
         },
         zh: { 
-          title: "KAZE", sub: "生活管理的艺术", zenBtn: "🌿 ZEN 模式", pixelBtn: "🕹️ PIXEL 模式", 
+          title: "KAZE", sub: "生活管理的艺术", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "财务", planner: "计划", dreams: "梦想", pixelRoom: "像素房间", capsule: "时光胶囊", cinema: "影院与动漫", mentor: "AI 导师", 
           back: "← 首页", send: "发送", add: "添加", currency: "¥", logout: "登出" 
         }
@@ -138,12 +174,8 @@
 
           if (txt.includes('сәлем') || txt.includes('привет') || txt.includes('hello')) {
             reply = "Сәлем! Бүгін өміріңді жақсарту үшін қандай қадам жасаймыз?";
-          } else if (txt.includes('ақша') || txt.includes('қаржы') || txt.includes('деньги') || txt.includes('money')) {
+          } else if (txt.includes('ақша') || txt.includes('қаржы') || txt.includes('деньги')) {
             reply = "Қаржылық тәртіп — еркіндіктің негізі. Барлық кірістер мен шығыстарды «Қаржы» бөліміне жазып отыруды ұмытпа!";
-          } else if (txt.includes('мақсат') || txt.includes('жоспар') || txt.includes('план') || txt.includes('goal')) {
-            reply = "Үлкен мақсатты кішкентай қадамдарға бөл. Оларды «Планер» бөліміне қосып, күнде біреуін орындап отыр!";
-          } else if (txt.includes('шаршадым') || txt.includes('мотивация') || txt.includes('устал')) {
-            reply = "Әрбір үлкен жеңіс кішкентай демалыстан басталады. «Кинозал» бөліміне өтіп, сүйікті анимеңді немесе фильмді көріп сергіп ал!";
           } else {
             reply = `"${userText}" бойынша ойландым: Ең бастысы — сабырлық пен жүйелілік. Бұл қадамды Планерге енгізіп, орындауға кірісейік!`;
           }
@@ -166,6 +198,7 @@
         if (!newTask.trim()) return;
         setTasks([{ id: Date.now(), text: newTask, done: false }, ...tasks]);
         setNewTask('');
+        setPixelUser(prev => ({ ...prev, xp: prev.xp + 15 }));
       };
 
       const toggleTask = (id) => {
@@ -173,20 +206,22 @@
       };
 
       return (
-        <div class={`min-h-screen p-6 transition-colors duration-500 ${isPixel ? 'bg-purple-950 font-pixel text-pink-300' : 'bg-slate-900 font-zen text-slate-100'}`}>
-          <header class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4 pb-6 border-b border-slate-700/50">
-            <div class="cursor-pointer" onClick={() => { setActiveTab('home'); setSelectedMovie(null); }}>
-              <h1 class={`text-3xl font-bold tracking-wider ${isPixel ? 'text-yellow-400 drop-shadow-[0_2px_0_#000]' : 'text-sky-400'}`}>
+        <div class={`min-h-screen p-6 transition-all duration-700 ${isPixel ? 'bg-slate-950 font-pixel text-pink-300 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900 via-slate-950 to-black' : 'bg-slate-950 font-zen text-slate-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black'}`}>
+          
+          {/* Header */}
+          <header class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4 pb-6 border-b border-slate-800/80">
+            <div class="cursor-pointer group" onClick={() => { setActiveTab('home'); setSelectedMovie(null); }}>
+              <h1 class={`text-3xl font-black tracking-wider transition-all duration-300 ${isPixel ? 'text-yellow-400 pixel-glow' : 'text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 group-hover:opacity-90'}`}>
                 {currText.title}
               </h1>
-              <p class="text-sm opacity-75 mt-1">{currText.sub}</p>
+              <p class="text-xs opacity-75 mt-1 font-semibold tracking-wide">{currText.sub}</p>
             </div>
 
             <div class="flex items-center gap-3">
               <select 
                 value={lang} 
                 onChange={(e) => setLang(e.target.value)}
-                class="bg-slate-800 text-white border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none cursor-pointer"
+                class="bg-slate-900/90 backdrop-blur-md text-white border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer hover:border-slate-500 transition-all shadow-lg"
               >
                 <option value="kz">🇰🇿 Қазақша</option>
                 <option value="ru">🇷🇺 Русский</option>
@@ -196,40 +231,40 @@
               </select>
 
               {user && (
-                <button onClick={handleLogout} class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-lg text-xs font-bold cursor-pointer">
+                <button onClick={handleLogout} class="bg-rose-600/80 hover:bg-rose-500 text-white px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all shadow-md backdrop-blur-md">
                   {currText.logout}
                 </button>
               )}
 
               <button 
                 onClick={() => setMode(isPixel ? 'zen' : 'pixel')}
-                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all shadow-lg cursor-pointer ${isPixel ? 'bg-yellow-400 text-black hover:bg-yellow-300' : 'bg-sky-500 text-white hover:bg-sky-400'}`}
+                class={`px-4 py-2 rounded-xl font-bold text-xs transition-all duration-300 shadow-xl cursor-pointer ${isPixel ? 'bg-yellow-400 text-black hover:bg-yellow-300 pixel-box' : 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white hover:from-sky-400 hover:to-indigo-500 pulse-glow'}`}
               >
                 {isPixel ? currText.zenBtn : currText.pixelBtn}
               </button>
             </div>
           </header>
 
-          <main class="max-w-6xl mx-auto mt-6">
+          <main class="max-w-6xl mx-auto mt-6 fade-in">
             {!user ? (
-              <div class="max-w-md mx-auto p-6 bg-slate-800 rounded-2xl border border-slate-700 shadow-xl mt-12">
-                <h2 class="text-xl font-bold mb-4 text-center">{isSignUp ? 'Тіркелу' : 'Кіру'}</h2>
-                {authMsg && <div class="mb-4 text-xs p-3 bg-slate-900 border border-amber-500 text-amber-300 rounded-lg">{authMsg}</div>}
+              <div class={`max-w-md mx-auto p-8 rounded-3xl border shadow-2xl mt-12 backdrop-blur-xl ${isPixel ? 'bg-purple-950/40 border-pink-500/50 pixel-box' : 'bg-slate-900/60 border-slate-800 pulse-glow'}`}>
+                <h2 class="text-2xl font-black mb-6 text-center tracking-tight">{isSignUp ? 'KAZE-ге Тіркелу' : 'KAZE-ге Кіру'}</h2>
+                {authMsg && <div class="mb-4 text-xs p-3 bg-amber-500/10 border border-amber-500/50 text-amber-300 rounded-xl">{authMsg}</div>}
                 <form onSubmit={handleAuth} class="space-y-4">
                   <div>
-                    <label class="text-xs opacity-75">Email</label>
-                    <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm mt-1 focus:outline-none" />
+                    <label class="text-xs font-semibold text-slate-400">Email</label>
+                    <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm mt-1 focus:outline-none focus:border-sky-500 transition-all" />
                   </div>
                   <div>
-                    <label class="text-xs opacity-75">Құпиясөз</label>
-                    <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm mt-1 focus:outline-none" />
+                    <label class="text-xs font-semibold text-slate-400">Құпиясөз</label>
+                    <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm mt-1 focus:outline-none focus:border-sky-500 transition-all" />
                   </div>
-                  <button type="submit" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 rounded-xl text-sm cursor-pointer">
+                  <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer shadow-lg transition-all">
                     {isSignUp ? 'Тіркелу' : 'Кіру'}
                   </button>
                 </form>
-                <div class="text-center mt-4">
-                  <button onClick={() => setIsSignUp(!isSignUp)} class="text-xs text-sky-400 underline cursor-pointer">
+                <div class="text-center mt-5">
+                  <button onClick={() => setIsSignUp(!isSignUp)} class="text-xs text-sky-400 hover:text-sky-300 underline cursor-pointer transition-all">
                     {isSignUp ? 'Аккаунт бар ма? Кіру' : 'Аккаунт жоқ па? Тіркелу'}
                   </button>
                 </div>
@@ -237,56 +272,71 @@
             ) : (
               <div>
                 {activeTab !== 'home' && (
-                  <div class="mb-4">
-                    <button onClick={() => { setActiveTab('home'); setSelectedMovie(null); }} class="text-sm px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 cursor-pointer">
+                  <div class="mb-6">
+                    <button onClick={() => { setActiveTab('home'); setSelectedMovie(null); }} class="text-xs font-bold px-4 py-2.5 bg-slate-900/80 border border-slate-700/80 hover:bg-slate-800 rounded-xl transition-all shadow-md cursor-pointer">
                       {currText.back}
                     </button>
                   </div>
                 )}
 
+                {/* Dashboard Navigation Cards */}
                 {activeTab === 'home' && (
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
-                    <div onClick={() => setActiveTab('finance')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
-                      <div class="text-3xl mb-3">💰</div>
-                      <h3 class="font-bold text-sm mb-1">{currText.finance}</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div onClick={() => setActiveTab('finance')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 shadow-xl ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800/80 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                      <div class="text-4xl mb-3">💰</div>
+                      <h3 class="font-bold text-lg mb-1">{currText.finance}</h3>
+                      <p class="text-xs text-slate-400">Бұлттық қаржы анализі.</p>
                     </div>
-                    <div onClick={() => setActiveTab('planner')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
-                      <div class="text-3xl mb-3">📅</div>
-                      <h3 class="font-bold text-sm mb-1">{currText.planner}</h3>
+
+                    <div onClick={() => setActiveTab('planner')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 shadow-xl ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800/80 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                      <div class="text-4xl mb-3">📅</div>
+                      <h3 class="font-bold text-lg mb-1">{currText.planner}</h3>
+                      <p class="text-xs text-slate-400">Мақсаттар мен XP жүйесі.</p>
                     </div>
-                    <div onClick={() => setActiveTab('dreams')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
-                      <div class="text-3xl mb-3">🎯</div>
-                      <h3 class="font-bold text-sm mb-1">{currText.dreams}</h3>
+
+                    <div onClick={() => setActiveTab('dreams')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 shadow-xl ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800/80 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                      <div class="text-4xl mb-3">🎯</div>
+                      <h3 class="font-bold text-lg mb-1">{currText.dreams}</h3>
+                      <p class="text-xs text-slate-400">Smart-копилка & мотивация.</p>
                     </div>
-                    <div onClick={() => setActiveTab('pixelroom')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
-                      <div class="text-3xl mb-3">🕹️</div>
-                      <h3 class="font-bold text-sm mb-1">{currText.pixelRoom}</h3>
+
+                    <div onClick={() => setActiveTab('pixelroom')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 shadow-xl ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800/80 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                      <div class="text-4xl mb-3">🕹️</div>
+                      <h3 class="font-bold text-lg mb-1">{currText.pixelRoom}</h3>
+                      <p class="text-xs text-slate-400">RPG персонаж & бөлме.</p>
                     </div>
-                    <div onClick={() => setActiveTab('capsule')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
-                      <div class="text-3xl mb-3">✉️</div>
-                      <h3 class="font-bold text-sm mb-1">{currText.capsule}</h3>
+
+                    <div onClick={() => setActiveTab('capsule')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 shadow-xl ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800/80 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                      <div class="text-4xl mb-3">✉️</div>
+                      <h3 class="font-bold text-lg mb-1">{currText.capsule}</h3>
+                      <p class="text-xs text-slate-400">Уақыт капсуласы.</p>
                     </div>
-                    <div onClick={() => setActiveTab('cinema')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
-                      <div class="text-3xl mb-3">🎬</div>
-                      <h3 class="font-bold text-sm mb-1">{currText.cinema}</h3>
+
+                    <div onClick={() => setActiveTab('cinema')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 shadow-xl ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800/80 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                      <div class="text-4xl mb-3">🎬</div>
+                      <h3 class="font-bold text-lg mb-1">{currText.cinema}</h3>
+                      <p class="text-xs text-slate-400">Watch Party & Аниме.</p>
                     </div>
-                    <div onClick={() => setActiveTab('mentor')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
-                      <div class="text-3xl mb-3">🤖</div>
-                      <h3 class="font-bold text-sm mb-1">{currText.mentor}</h3>
+
+                    <div onClick={() => setActiveTab('mentor')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 shadow-xl md:col-span-2 ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800/80 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                      <div class="text-4xl mb-3">🤖</div>
+                      <h3 class="font-bold text-lg mb-1">{currText.mentor}</h3>
+                      <p class="text-xs text-slate-400">Ақылды ЖИ Ментор мен кеңесші.</p>
                     </div>
                   </div>
                 )}
 
+                {/* Tab Views */}
                 {activeTab === 'mentor' && (
-                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4">🤖 {currText.mentor}</h2>
-                    <div class="h-80 overflow-y-auto space-y-3 mb-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+                  <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-2xl font-black mb-4 flex items-center gap-2">🤖 {currText.mentor}</h2>
+                    <div class="h-80 overflow-y-auto space-y-3 mb-4 p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80">
                       {messages.map((m, idx) => (
-                        <div key={idx} class={`p-3 rounded-xl max-w-xl text-sm ${m.sender === 'user' ? 'ml-auto bg-sky-600 text-white' : 'bg-slate-700 text-slate-200'}`}>
+                        <div key={idx} class={`p-3.5 rounded-2xl max-w-xl text-sm leading-relaxed ${m.sender === 'user' ? 'ml-auto bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md' : 'bg-slate-800/90 text-slate-200 border border-slate-700/60'}`}>
                           {m.text}
                         </div>
                       ))}
-                      {loadingAi && <div class="text-xs text-sky-400 italic">ЖИ Ментор ойланып жатыр...</div>}
+                      {loadingAi && <div class="text-xs text-sky-400 italic font-semibold">ЖИ Ментор ойланып жатыр...</div>}
                     </div>
                     <form onSubmit={handleSendMessage} class="flex gap-2">
                       <input 
@@ -294,23 +344,27 @@
                         value={inputMsg}
                         onChange={(e) => setInputMsg(e.target.value)}
                         placeholder="Сұрағыңызды немесе ойыңызды жазыңыз..."
-                        class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none"
+                        class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition-all"
                       />
-                      <button type="submit" disabled={loadingAi} class="bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl text-sm cursor-pointer">
+                      <button type="submit" disabled={loadingAi} class="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 font-bold px-6 py-3 rounded-xl text-sm cursor-pointer shadow-md transition-all">
                         {currText.send}
                       </button>
                     </form>
                   </div>
                 )}
 
-                {activeTab === 'cinema' && (
-                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4">🎬 {currText.cinema}</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {movies.map(m => (
-                        <div key={m.id} class="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                          <h3 class="font-bold text-sm mb-1">{m.title}</h3>
-                          <p class="text-xs opacity-75">{m.genre}</p>
+                {activeTab === 'planner' && (
+                  <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-2xl font-black mb-4">📅 {currText.planner}</h2>
+                    <form onSubmit={handleAddTask} class="flex gap-2 mb-4">
+                      <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Жаңа мақсат енгізіңіз..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none" />
+                      <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-6 py-3 rounded-xl text-sm cursor-pointer transition-all">{currText.add}</button>
+                    </form>
+                    <div class="space-y-2">
+                      {tasks.map(item => (
+                        <div key={item.id} onClick={() => toggleTask(item.id)} class={`p-4 rounded-xl border cursor-pointer flex justify-between items-center transition-all ${item.done ? 'bg-slate-950/40 border-slate-900 line-through opacity-50' : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'}`}>
+                          <span class="text-sm font-medium">{item.text}</span>
+                          <span>{item.done ? '✅' : '⏳'}</span>
                         </div>
                       ))}
                     </div>
@@ -318,17 +372,17 @@
                 )}
 
                 {activeTab === 'finance' && (
-                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4">💰 {currText.finance}</h2>
+                  <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-2xl font-black mb-4">💰 {currText.finance}</h2>
                     <div class="flex flex-wrap gap-2 mb-4">
-                      <input type="text" placeholder="..." value={finTitle} onChange={(e) => setFinTitle(e.target.value)} class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm" />
-                      <input type="number" placeholder={currText.currency} value={finAmount} onChange={(e) => setFinAmount(e.target.value)} class="w-36 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm" />
-                      <button onClick={(e) => handleAddFin(e, 'income')} class="bg-emerald-500 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer">+ Кіріс</button>
-                      <button onClick={(e) => handleAddFin(e, 'expense')} class="bg-rose-500 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer">- Шығыс</button>
+                      <input type="text" placeholder="Атауы..." value={finTitle} onChange={(e) => setFinTitle(e.target.value)} class="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm" />
+                      <input type="number" placeholder={currText.currency} value={finAmount} onChange={(e) => setFinAmount(e.target.value)} class="w-36 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm" />
+                      <button onClick={(e) => handleAddFin(e, 'income')} class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer">+ Кіріс</button>
+                      <button onClick={(e) => handleAddFin(e, 'expense')} class="bg-rose-500 hover:bg-rose-400 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer">- Шығыс</button>
                     </div>
                     <div class="space-y-2">
                       {transactions.map(item => (
-                        <div key={item.id} class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 flex justify-between text-sm">
+                        <div key={item.id} class="p-4 bg-slate-950/70 rounded-xl border border-slate-800/80 flex justify-between items-center text-sm font-medium">
                           <span>{item.title}</span>
                           <span class={item.type === 'income' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>{item.type === 'income' ? '+' : '-'}{item.amount} {currText.currency}</span>
                         </div>
@@ -337,41 +391,61 @@
                   </div>
                 )}
 
-                {activeTab === 'planner' && (
-                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4">📅 {currText.planner}</h2>
-                    <form onSubmit={handleAddTask} class="flex gap-2 mb-4">
-                      <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm" />
-                      <button type="submit" class="bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-sm cursor-pointer">{currText.add}</button>
-                    </form>
-                    <div class="space-y-2">
-                      {tasks.map(item => (
-                        <div key={item.id} onClick={() => toggleTask(item.id)} class={`p-4 rounded-xl border cursor-pointer flex justify-between ${item.done ? 'bg-slate-900/40 border-slate-800 line-through opacity-50' : 'bg-slate-900/80 border-slate-700'}`}>
-                          <span>{item.text}</span>
-                          <span>{item.done ? '✅' : '⏳'}</span>
-                        </div>
-                      ))}
+                {activeTab === 'pixelroom' && (
+                  <div class="p-8 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl text-center">
+                    <h2 class="text-2xl font-black mb-6">🕹️ {currText.pixelRoom}</h2>
+                    <div class="inline-block p-8 bg-slate-950 rounded-2xl border border-slate-800 mb-6">
+                      <div class="text-7xl mb-4 pixel-glow">🧙‍♂️</div>
+                      <p class="text-yellow-400 font-bold text-lg">Level {pixelUser.level}</p>
+                      <p class="text-xs text-slate-400 mt-1">XP: {pixelUser.xp} / 100</p>
+                      <div class="w-48 bg-slate-800 rounded-full h-3 mt-3 overflow-hidden border border-slate-700">
+                        <div class="bg-yellow-400 h-3 rounded-full transition-all duration-500" style={{ width: `${pixelUser.xp % 100}%` }}></div>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {activeTab === 'pixelroom' && (
-                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700 text-center">
-                    <h2 class="text-2xl font-bold mb-4">🕹️ {currText.pixelRoom}</h2>
-                    <div class="text-6xl mb-3">🧙‍♂️</div>
-                    <p class="text-yellow-400 font-bold">Level: {pixelUser.level} (XP: {pixelUser.xp})</p>
-                  </div>
-                )}
-
                 {activeTab === 'dreams' && (
-                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4">🎯 {currText.dreams}</h2>
+                  <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-2xl font-black mb-4">🎯 {currText.dreams}</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {dreams.map(item => {
+                        const percent = Math.min(100, Math.round((item.currentAmount / item.targetAmount) * 100));
+                        return (
+                          <div key={item.id} class="p-5 bg-slate-950/80 rounded-2xl border border-slate-800">
+                            <div class="flex justify-between items-center mb-2">
+                              <h3 class="font-bold text-base">{item.title}</h3>
+                              <span class="text-xs bg-amber-500/20 text-amber-400 font-bold px-2 py-1 rounded">{percent}%</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-3 mb-3 overflow-hidden">
+                              <div class="bg-amber-400 h-3 rounded-full" style={{ width: `${percent}%` }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
                 {activeTab === 'capsule' && (
-                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4">✉️ {currText.capsule}</h2>
+                  <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-2xl font-black mb-4">✉️ {currText.capsule}</h2>
+                  </div>
+                )}
+
+                {activeTab === 'cinema' && (
+                  <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-2xl font-black mb-4">🎬 {currText.cinema}</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {movies.map(m => (
+                        <div key={m.id} class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 hover:border-sky-500 transition-all cursor-pointer">
+                          <div class="h-32 bg-slate-900 rounded-xl mb-3 flex items-center justify-center text-3xl">🍿</div>
+                          <h3 class="font-bold text-sm mb-1">{m.title}</h3>
+                          <p class="text-xs text-slate-400 mb-2">{m.genre}</p>
+                          <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded font-bold">⭐ {m.rating}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
