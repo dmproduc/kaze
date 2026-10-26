@@ -19,7 +19,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState } = React;
+    const { useState, useEffect } = React;
 
     const SUPABASE_URL = 'https://vbplbvledfttyoefdzim.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_j45QbUJePkf6cVHRyYqAZg_NzXnrLTF';
@@ -38,13 +38,12 @@
 
       const [tasks, setTasks] = useState([
         { id: 1, text: 'KAZE жүйесін реттеу', done: true },
-        { id: 2, text: 'ЖИ Ментормен жұмыс істеу', done: true }
+        { id: 2, text: 'Supabase базасын қосу', done: true }
       ]);
       const [newTask, setNewTask] = useState('');
 
-      const [transactions, setTransactions] = useState([
-        { id: 1, title: 'Бастапқы капитал', amount: 100000, type: 'income' }
-      ]);
+      // Finance State (Supabase connected)
+      const [transactions, setTransactions] = useState([]);
       const [finTitle, setFinTitle] = useState('');
       const [finAmount, setFinAmount] = useState('');
 
@@ -64,7 +63,37 @@
 
       const isPixel = mode === 'pixel';
 
-      // Күшейтілген ақылды жауап генераторы
+      // Load transactions from Supabase on mount
+      useEffect(() => {
+        fetchTransactions();
+      }, []);
+
+      const fetchTransactions = async () => {
+        const { data, error } = await supabase.from('transactions').select('*').order('id', { ascending: false });
+        if (data && !error) {
+          setTransactions(data);
+        }
+      };
+
+      const handleAddFin = async (e, type) => {
+        e.preventDefault();
+        if (!finTitle || !finAmount) return;
+
+        const newTx = { title: finTitle, amount: Number(finAmount), type };
+        const { data, error } = await supabase.from('transactions').insert([newTx]).select();
+        
+        if (data && !error) {
+          setTransactions([data[0], ...transactions]);
+          setFinTitle('');
+          setFinAmount('');
+        } else {
+          // Fallback local if table not ready yet
+          setTransactions([{ id: Date.now(), ...newTx }, ...transactions]);
+          setFinTitle('');
+          setFinAmount('');
+        }
+      };
+
       const handleSendMessage = (e) => {
         e.preventDefault();
         if (!inputMsg.trim() || loadingAi) return;
@@ -78,21 +107,17 @@
           let reply = "";
           const textLower = userText.toLowerCase();
 
-          if (textLower.includes('сәлем') || textLower.includes('привет') || textLower.includes('хай')) {
-            reply = "Сәлем! Бүгін қандай биіктерді бағындырамыз? Жоспарыңды айт!";
-          } else if (textLower.includes('қаржы') || textLower.includes('ақша') || textLower.includes('деньги')) {
-            reply = "Қаржы мәселесін реттеу үшін қосымшаның «Қаржы» бөліміне кіріп, барлық кіріс пен шығысыңды жазып отыр. Бұл бюджетті бақылауда ұстаудың ең оңай жолы.";
-          } else if (textLower.includes('мақсат') || textLower.includes('план') || textLower.includes('жоспар')) {
-            reply = "Үлкен мақсаттарды кішігірім қадамдарға бөл де, «Планер» бөліміне тізіп жазып шық. Әр орындалған қадам сені жеңіске жақындатады!";
-          } else if (textLower.includes('кімсің') || textLower.includes('не істей аласың')) {
-            reply = "Мен — KAZE жүйесінің жасанды интеллект менторымын. Саған өмірді басқаруға, мотивация алуға, уақытты тиімді бөлуге және қаржыны қадағалауға көмектесемін.";
+          if (textLower.includes('сәлем') || textLower.includes('привет')) {
+            reply = "Сәлем! Бүгін қандай биіктерді бағындырамыз?";
+          } else if (textLower.includes('қаржы') || textLower.includes('ақша')) {
+            reply = "Қаржыңызды «Қаржы» бөліміндегі бұлттық база арқылы қадағалап отырыңыз!";
           } else {
-            reply = `Түсінікті. "${userText}" бойынша айтар болсам, бастысы — сабырлық мен жүйелілік. Бұл мәселені шешу үшін нақты әрекеттерге көшіп, Планерге тапсырма ретінде жазып қойсаң болады!`;
+            reply = `"${userText}" бойынша жоспар құрып, Планерге енгізейік!`;
           }
 
           setMessages(prev => [...prev, { sender: 'ai', text: reply }]);
           setLoadingAi(false);
-        }, 600);
+        }, 500);
       };
 
       const handleAddTask = (e) => {
@@ -104,14 +129,6 @@
 
       const toggleTask = (id) => {
         setTasks(tasks.map(item => item.id === id ? { ...item, done: !item.done } : item));
-      };
-
-      const handleAddFin = (e, type) => {
-        e.preventDefault();
-        if (!finTitle || !finAmount) return;
-        setTransactions([...transactions, { id: Date.now(), title: finTitle, amount: Number(finAmount), type }]);
-        setFinTitle('');
-        setFinAmount('');
       };
 
       return (
@@ -163,19 +180,19 @@
                 <div onClick={() => setActiveTab('finance')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">💰</div>
                   <h3 class="font-bold text-xl mb-1">{t[lang].finance}</h3>
-                  <p class="text-xs opacity-75">Supabase базасымен байланысқан қаржы бақылауы.</p>
+                  <p class="text-xs opacity-75">Supabase бұлттық базасымен жұмыс істейтін қаржы.</p>
                 </div>
 
                 <div onClick={() => setActiveTab('planner')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">📅</div>
                   <h3 class="font-bold text-xl mb-1">{t[lang].planner}</h3>
-                  <p class="text-xs opacity-75">Тапсырмалар, мақсаттар мен күнделік.</p>
+                  <p class="text-xs opacity-75">Тапсырмалар мен мақсаттар тізімі.</p>
                 </div>
 
                 <div onClick={() => setActiveTab('cinema')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">🎬</div>
                   <h3 class="font-bold text-xl mb-1">{t[lang].cinema}</h3>
-                  <p class="text-xs opacity-75">Таңдаулы аниме мен кинозал каталогы.</p>
+                  <p class="text-xs opacity-75">Аниме мен кинозал каталогы.</p>
                 </div>
 
                 <div onClick={() => setActiveTab('mentor')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
@@ -244,7 +261,7 @@
                 <div class="flex flex-wrap gap-2 mb-4">
                   <input 
                     type="text" 
-                    placeholder="Атауы..." 
+                    placeholder="Атауы (мысалы: Жалақы)" 
                     value={finTitle}
                     onChange={(e) => setFinTitle(e.target.value)}
                     class="flex-1 min-w-[200px] bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm"
