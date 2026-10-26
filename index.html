@@ -23,22 +23,79 @@
     function App() {
       const [mode, setMode] = useState('zen');
       const [lang, setLang] = useState('kz');
+      const [activeTab, setActiveTab] = useState('home');
+
+      // AI Chat State
+      const [messages, setMessages] = useState([
+        { sender: 'ai', text: 'Сәлем! Мен KAZE-нің жасанды интеллект менторымын. Бүгін сізге қалай көмектесе аламын?' }
+      ]);
+      const [inputMsg, setInputMsg] = useState('');
+
+      // Planner State
+      const [tasks, setTasks] = useState([
+        { id: 1, text: 'KAZE жобасының іргетасын қалау', done: true },
+        { id: 2, text: 'ЖИ Ментор функциясын іске қосу', done: false }
+      ]);
+      const [newTask, setNewTask] = useState('');
+
+      // Finance State
+      const [transactions, setTransactions] = useState([
+        { id: 1, title: 'Жоба инвестициясы', amount: 50000, type: 'income' },
+        { id: 2, title: 'Сервер шығыны', amount: 5000, type: 'expense' }
+      ]);
+      const [finTitle, setFinTitle] = useState('');
+      const [finAmount, setFinAmount] = useState('');
 
       const t = {
-        kz: { title: "KAZE", sub: "Өмірді басқару өнері", zenBtn: "🌿 ZEN Режимі", pixelBtn: "🕹️ PIXEL Режимі", finance: "Қаржы", planner: "Планер", cinema: "Кинозал & Аниме", mentor: "ЖИ Ментор", status: "Жүйе белсенді 🚀" },
-        ru: { title: "KAZE", sub: "Искусство управлять жизнью", zenBtn: "🌿 ZEN Режим", pixelBtn: "🕹️ PIXEL Режим", finance: "Финансы", planner: "Планер", cinema: "Кинозал & Аниме", mentor: "ИИ Ментор", status: "Система активна 🚀" },
-        en: { title: "KAZE", sub: "The Art of Life Control", zenBtn: "🌿 ZEN Mode", pixelBtn: "🕹️ PIXEL Mode", finance: "Finance", planner: "Planner", cinema: "Cinema & Anime", mentor: "AI Mentor", status: "System Active 🚀" },
-        uz: { title: "KAZE", sub: "Hayotni boshqarish san'ati", zenBtn: "🌿 ZEN Rejimi", pixelBtn: "🕹️ PIXEL Rejimi", finance: "Moliya", planner: "Reja", cinema: "Kino & Anime", mentor: "AI Mentor", status: "Tizim faol 🚀" },
-        zh: { title: "KAZE", sub: "生活管理的艺术", zenBtn: "🌿 ZEN 模式", pixelBtn: "🕹️ PIXEL 模式", finance: "财务", planner: "计划", cinema: "影院与动漫", mentor: "AI 导师", status: "系统已激活 🚀" }
+        kz: { title: "KAZE", sub: "Өмірді басқару өнері", zenBtn: "🌿 ZEN Режимі", pixelBtn: "🕹️ PIXEL Режимі", finance: "Қаржы", planner: "Планер", cinema: "Кинозал & Аниме", mentor: "ЖИ Ментор", back: "← Артқа", send: "Жіберу", add: "Қосу" },
+        ru: { title: "KAZE", sub: "Искусство управлять жизнью", zenBtn: "🌿 ZEN Режим", pixelBtn: "🕹️ PIXEL Режим", finance: "Финансы", planner: "Планер", cinema: "Кинозал & Аниме", mentor: "ИИ Ментор", back: "← Назад", send: "Отправить", add: "Добавить" },
+        en: { title: "KAZE", sub: "The Art of Life Control", zenBtn: "🌿 ZEN Mode", pixelBtn: "🕹️ PIXEL Mode", finance: "Finance", planner: "Planner", cinema: "Cinema & Anime", mentor: "AI Mentor", back: "← Back", send: "Send", add: "Add" },
+        uz: { title: "KAZE", sub: "Hayotni boshqarish san'ati", zenBtn: "🌿 ZEN Rejimi", pixelBtn: "🕹️ PIXEL Rejimi", finance: "Moliya", planner: "Reja", cinema: "Kino & Anime", mentor: "AI Mentor", back: "← Orqaga", send: "Yuborish", add: "Qo'shish" },
+        zh: { title: "KAZE", sub: "生活管理的艺术", zenBtn: "🌿 ZEN 模式", pixelBtn: "🕹️ PIXEL 模式", finance: "财务", planner: "计划", cinema: "影院与动漫", mentor: "AI 导师", back: "← 返回", send: "发送", add: "添加" }
       };
 
       const isPixel = mode === 'pixel';
+
+      // Handlers
+      const handleSendMessage = (e) => {
+        e.preventDefault();
+        if (!inputMsg.trim()) return;
+        const userMsg = inputMsg;
+        setMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
+        setInputMsg('');
+
+        setTimeout(() => {
+          setMessages(prev => [...prev, { 
+            sender: 'ai', 
+            text: `[Gemini & ChatGPT AI]: "${userMsg}" сұрағыңыз қабылданды! Мен сіздің мақсаттарыңызға жетуге көмектесемін.` 
+          }]);
+        }, 800);
+      };
+
+      const handleAddTask = (e) => {
+        e.preventDefault();
+        if (!newTask.trim()) return;
+        setTasks([...tasks, { id: Date.now(), text: newTask, done: false }]);
+        setNewTask('');
+      };
+
+      const toggleTask = (id) => {
+        setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
+      };
+
+      const handleAddFin = (e, type) => {
+        e.preventDefault();
+        if (!finTitle || !finAmount) return;
+        setTransactions([...transactions, { id: Date.now(), title: finTitle, amount: Number(finAmount), type }]);
+        setFinTitle('');
+        setFinAmount('');
+      };
 
       return (
         <div class={`min-h-screen p-6 transition-colors duration-500 ${isPixel ? 'bg-purple-950 font-pixel text-pink-300' : 'bg-slate-900 font-zen text-slate-100'}`}>
           {/* Header */}
           <header class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4 pb-6 border-b border-slate-700/50">
-            <div>
+            <div class="cursor-pointer" onClick={() => setActiveTab('home')}>
               <h1 class={`text-3xl font-bold tracking-wider ${isPixel ? 'text-yellow-400 drop-shadow-[0_2px_0_#000]' : 'text-sky-400'}`}>
                 {t[lang].title}
               </h1>
@@ -67,36 +124,157 @@
             </div>
           </header>
 
-          {/* Main Grid */}
-          <main class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-            <div class={`p-5 rounded-xl border transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
-              <div class="text-2xl mb-2">💰</div>
-              <h3 class="font-bold text-lg mb-1">{t[lang].finance}</h3>
-              <p class="text-xs opacity-70">Supabase базасына қосылған бюджет қадағалау жүйесі.</p>
+          {/* Navigation Back button if not home */}
+          {activeTab !== 'home' && (
+            <div class="max-w-6xl mx-auto mt-4">
+              <button 
+                onClick={() => setActiveTab('home')}
+                class="text-sm px-3 py-1 bg-slate-800 rounded border border-slate-700 hover:bg-slate-700"
+              >
+                {t[lang].back}
+              </button>
             </div>
+          )}
 
-            <div class={`p-5 rounded-xl border transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
-              <div class="text-2xl mb-2">📅</div>
-              <h3 class="font-bold text-lg mb-1">{t[lang].planner}</h3>
-              <p class="text-xs opacity-70">Күнделікті мақсаттар мен тайм-менеджмент.</p>
-            </div>
+          {/* Main Content Areas */}
+          <main class="max-w-6xl mx-auto mt-6">
 
-            <div class={`p-5 rounded-xl border transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
-              <div class="text-2xl mb-2">🎬</div>
-              <h3 class="font-bold text-lg mb-1">{t[lang].cinema}</h3>
-              <p class="text-xs opacity-70">Аниме және онлайн кинозал интеграциясы.</p>
-            </div>
+            {/* HOME HUB */}
+            {activeTab === 'home' && (
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div onClick={() => setActiveTab('finance')} class={`p-5 rounded-xl border cursor-pointer hover:scale-105 transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
+                  <div class="text-2xl mb-2">💰</div>
+                  <h3 class="font-bold text-lg mb-1">{t[lang].finance}</h3>
+                  <p class="text-xs opacity-70">Кіріс-шығыс және бюджетті басқару.</p>
+                </div>
 
-            <div class={`p-5 rounded-xl border transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
-              <div class="text-2xl mb-2">🤖</div>
-              <h3 class="font-bold text-lg mb-1">{t[lang].mentor}</h3>
-              <p class="text-xs opacity-70">Gemini & ChatGPT қос жасанды интеллект көмекшісі.</p>
-            </div>
+                <div onClick={() => setActiveTab('planner')} class={`p-5 rounded-xl border cursor-pointer hover:scale-105 transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
+                  <div class="text-2xl mb-2">📅</div>
+                  <h3 class="font-bold text-lg mb-1">{t[lang].planner}</h3>
+                  <p class="text-xs opacity-70">Тапсырмалар тізімі мен мақсаттар.</p>
+                </div>
+
+                <div onClick={() => setActiveTab('cinema')} class={`p-5 rounded-xl border cursor-pointer hover:scale-105 transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
+                  <div class="text-2xl mb-2">🎬</div>
+                  <h3 class="font-bold text-lg mb-1">{t[lang].cinema}</h3>
+                  <p class="text-xs opacity-70">Аниме және медиа каталог.</p>
+                </div>
+
+                <div onClick={() => setActiveTab('mentor')} class={`p-5 rounded-xl border cursor-pointer hover:scale-105 transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
+                  <div class="text-2xl mb-2">🤖</div>
+                  <h3 class="font-bold text-lg mb-1">{t[lang].mentor}</h3>
+                  <p class="text-xs opacity-70">Gemini & ChatGPT менторымен сөйлесу.</p>
+                </div>
+              </div>
+            )}
+
+            {/* AI MENTOR TAB */}
+            {activeTab === 'mentor' && (
+              <div class={`p-6 rounded-xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">🤖 {t[lang].mentor}</h2>
+                <div class="h-64 overflow-y-auto space-y-3 mb-4 p-4 rounded-lg bg-slate-950/50 border border-slate-800">
+                  {messages.map((m, idx) => (
+                    <div key={idx} class={`p-3 rounded-lg max-w-md ${m.sender === 'user' ? 'ml-auto bg-sky-600 text-white' : 'bg-slate-700 text-slate-200'}`}>
+                      <p class="text-sm">{m.text}</p>
+                    </div>
+                  ))}
+                </div>
+                <form onSubmit={handleSendMessage} class="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={inputMsg}
+                    onChange={(e) => setInputMsg(e.target.value)}
+                    placeholder="Сұрағыңызды немесе идеяңызды жазыңыз..."
+                    class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none"
+                  />
+                  <button type="submit" class="bg-sky-500 hover:bg-sky-400 text-white font-bold px-4 py-2 rounded-lg text-sm">
+                    {t[lang].send}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* PLANNER TAB */}
+            {activeTab === 'planner' && (
+              <div class={`p-6 rounded-xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">📅 {t[lang].planner}</h2>
+                <form onSubmit={handleAddTask} class="flex gap-2 mb-4">
+                  <input 
+                    type="text" 
+                    value={newTask}
+                    onChange={(e) => setNewTask(e.target.value)}
+                    placeholder="Жаңа мақсат/тапсырма енгізіңіз..."
+                    class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none"
+                  />
+                  <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-4 py-2 rounded-lg text-sm">
+                    {t[lang].add}
+                  </button>
+                </form>
+                <div class="space-y-2">
+                  {tasks.map(t => (
+                    <div key={t.id} onClick={() => toggleTask(t.id)} class={`p-3 rounded-lg border cursor-pointer flex justify-between items-center ${t.done ? 'bg-slate-900/50 border-slate-800 line-through opacity-60' : 'bg-slate-700/50 border-slate-600'}`}>
+                      <span>{t.text}</span>
+                      <span>{t.done ? '✅' : '⏳'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* FINANCE TAB */}
+            {activeTab === 'finance' && (
+              <div class={`p-6 rounded-xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">💰 {t[lang].finance}</h2>
+                <div class="flex gap-2 mb-4">
+                  <input 
+                    type="text" 
+                    placeholder="Атауы (мысалы: Тамақ)" 
+                    value={finTitle}
+                    onChange={(e) => setFinTitle(e.target.value)}
+                    class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm"
+                  />
+                  <input 
+                    type="number" 
+                    placeholder="Сұма (₸)" 
+                    value={finAmount}
+                    onChange={(e) => setFinAmount(e.target.value)}
+                    class="w-32 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm"
+                  />
+                  <button onClick={(e) => handleAddFin(e, 'income')} class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-3 py-2 rounded-lg text-sm">+ Кіріс</button>
+                  <button onClick={(e) => handleAddFin(e, 'expense')} class="bg-rose-500 hover:bg-rose-400 text-white font-bold px-3 py-2 rounded-lg text-sm">- Шығыс</button>
+                </div>
+                <div class="space-y-2">
+                  {transactions.map(item => (
+                    <div key={item.id} class="p-3 bg-slate-900/60 rounded-lg border border-slate-800 flex justify-between items-center text-sm">
+                      <span>{item.title}</span>
+                      <span class={item.type === 'income' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                        {item.type === 'income' ? '+' : '-'}{item.amount} ₸
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* CINEMA TAB */}
+            {activeTab === 'cinema' && (
+              <div class={`p-6 rounded-xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">🎬 {t[lang].cinema}</h2>
+                <p class="text-sm opacity-70 mb-4">Аниме және Онлайн Кинозал модулі (Anilote API дайындалуда...)</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div class="p-4 bg-slate-900 rounded-lg border border-slate-800 text-center">
+                    <div class="text-4xl mb-2">⚔️</div>
+                    <div class="font-bold text-sm">Hunter x Hunter</div>
+                  </div>
+                  <div class="p-4 bg-slate-900 rounded-lg border border-slate-800 text-center">
+                    <div class="text-4xl mb-2">🥊</div>
+                    <div class="font-bold text-sm">Fight Club</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </main>
-
-          <footer class="max-w-6xl mx-auto mt-12 text-center text-xs opacity-50">
-            {t[lang].status} | KAZE OS v1.0
-          </footer>
         </div>
       );
     }
