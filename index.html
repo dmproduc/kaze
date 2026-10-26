@@ -4,16 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KAZE – Өмірді басқару өнері</title>
-  <!-- Core Libraries -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     .font-pixel { font-family: 'Press Start 2P', cursive; }
     .font-zen { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -25,7 +21,7 @@
     }
 
     .pixel-box {
-      box-shadow: 4px 4px 0px #000, -4px -4px 0px #ec4899;
+      box-shadow: 4px 4px 0px #000, -4px -4px 0px #fd4d96;
     }
     
     .pulse-glow {
@@ -33,7 +29,7 @@
     }
     @keyframes pulseGlow {
       0% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
-      100% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.4); }
+      100% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.5); }
     }
 
     .pixel-glow {
@@ -43,156 +39,104 @@
       0% { filter: drop-shadow(0 0 5px #facc15); }
       100% { filter: drop-shadow(0 0 15px #facc15); }
     }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.6);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(51, 65, 85, 0.8);
-      border-radius: 9999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(100, 116, 139, 1);
-    }
   </style>
 </head>
 <body class="bg-slate-950 text-white min-h-screen selection:bg-sky-500 selection:text-white">
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect } = React;
 
-    // Supabase Credentials
     const SUPABASE_URL = 'https://vbplbvledfttyoefdzim.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_j45QbUJePkf6cVHRyYqAZg_NzXnrLTF';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     function App() {
-      // System & Navigation States
-      const [mode, setMode] = useState('zen'); // 'zen' or 'pixel'
+      const [mode, setMode] = useState('zen');
       const [lang, setLang] = useState('kz');
       const [activeTab, setActiveTab] = useState('home');
       const [user, setUser] = useState(null);
 
-      // Auth States
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
       const [isSignUp, setIsSignUp] = useState(false);
       const [authMsg, setAuthMsg] = useState('');
 
-      // API Key Settings (stored securely in browser localStorage)
-      const [openaiKey, setOpenaiKey] = useState(() => localStorage.getItem('kaze_openai_key') || '');
-      const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('kaze_gemini_key') || '');
-      const [selectedProvider, setSelectedProvider] = useState(() => localStorage.getItem('kaze_ai_provider') || 'auto');
-      const [showSettings, setShowSettings] = useState(false);
-
-      // AI Mentor States
+      // AI Mentor State
       const [messages, setMessages] = useState([
         { sender: 'ai', text: 'Сәлем! Мен KAZE ЖИ Менторымын. Өміріңді, қаржыңды және жоспарларыңды басқаруға қалай көмектесемін?' }
       ]);
       const [inputMsg, setInputMsg] = useState('');
       const [loadingAi, setLoadingAi] = useState(false);
       const [isListening, setIsListening] = useState(false);
-      const chatEndRef = useRef(null);
 
-      // Feature Data States
-      const [tasks, setTasks] = useState([
-        { id: 1, text: 'Ағылшын тілін 30 минут оқу', done: true },
-        { id: 2, text: 'KAZE арқылы қаржыны талдау', done: false }
-      ]);
+      const GEMINI_API_KEY = 'AQ.Ab8RN6IdBzPyYKFkIYaVhfFysRVD4Hw91HmRU-U37erClIyCTQ';
+      const OPENAI_API_KEY = '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';
+
+      const [tasks, setTasks] = useState([]);
       const [newTask, setNewTask] = useState('');
 
-      const [transactions, setTransactions] = useState([
-        { id: 1, title: 'Фриланс жобасы', amount: 150000, type: 'income', date: '2026-10-25' },
-        { id: 2, title: 'Супермаркет', amount: 18500, type: 'expense', date: '2026-10-26' }
-      ]);
+      const [transactions, setTransactions] = useState([]);
       const [finTitle, setFinTitle] = useState('');
       const [finAmount, setFinAmount] = useState('');
 
       const [dreams, setDreams] = useState([
-        { id: 1, title: 'Жаңа Macbook Pro', targetAmount: 950000, currentAmount: 420000 },
-        { id: 2, title: 'Жапонияға саяхат', targetAmount: 1200000, currentAmount: 350000 }
+        { id: 1, title: 'Жаңа ноутбук', targetAmount: 500000, currentAmount: 180000 }
       ]);
-      const [dreamTitle, setDreamTitle] = useState('');
-      const [dreamTarget, setDreamTarget] = useState('');
 
-      const [pixelUser, setPixelUser] = useState({ level: 2, xp: 75 });
-      const [capsules, setCapsules] = useState([
-        { id: 1, title: '2027 жылғы маған хат', content: 'Сәлем, болашақтағы мен! KAZE супер-қосымшасын толық меңгеріп, мақсаттарыңа жеттің бе?', unlockDate: '2027-01-01', locked: true }
+      const [pixelUser, setPixelUser] = useState({ level: 1, xp: 60 });
+      const [capsules] = useState([
+        { id: 1, title: '2027 жылғы маған хат', content: 'Сәлем, болашақтағы мен!', unlockDate: '2027-01-01', locked: true }
       ]);
-      const [capsuleTitle, setCapsuleTitle] = useState('');
-      const [capsuleContent, setCapsuleContent] = useState('');
-      const [capsuleDate, setCapsuleDate] = useState('');
 
       const [movies] = useState([
-        { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4', episodes: '148 серия', desc: 'Гон мен Киллуаның хантер болу жолындағы сапары.' },
-        { id: 2, title: 'Fight Club', genre: 'Драма / Психология', rating: '8.8', episodes: 'Толық метраж', desc: 'Ішкі еркіндік пен тұтынушылық қоғамды қайта қарау.' },
-        { id: 3, title: 'Cyberpunk: Edgerunners', genre: 'Аниме / Экшен', rating: '9.1', episodes: '10 серия', desc: 'Найт-Сити көшелеріндегі аман қалу күресі.' },
-        { id: 4, title: 'Interstellar', genre: 'Ғылыми / Фантастика', rating: '9.3', episodes: 'Толық метраж', desc: 'Уақыт пен кеңістік шегіндегі адамзатты құтқару миссиясы.' }
+        { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4', episodes: '148 серия', desc: 'Гон мен Киллуаның сапары.' },
+        { id: 2, title: 'Fight Club', genre: 'Драма / Психология', rating: '8.8', episodes: 'Толық метраж', desc: 'Ішкі еркіндік.' }
       ]);
       const [selectedMovie, setSelectedMovie] = useState(null);
 
-      // Multilingual Dictionary
       const t = {
         kz: { 
           title: "KAZE", sub: "Өмірді басқару өнері", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "Қаржы", planner: "Планер", dreams: "Армандар", pixelRoom: "Pixel Бөлме", capsule: "Болашаққа хат", cinema: "Кинозал & Аниме", mentor: "ЖИ Ментор", 
-          back: "← Басты бетке", send: "Жіберу", voiceBtn: "🎤", add: "Қосу", currency: "₸", logout: "Шығу", settings: "⚙️ API Баптаулары" 
+          back: "← Басты бетке", send: "Жіберу", voiceBtn: "🎤 Дауыспен", add: "Қосу", currency: "₸", logout: "Шығу" 
         },
         ru: { 
           title: "KAZE", sub: "Искусство управлять жизнью", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "Финансы", planner: "Планер", dreams: "Мечты", pixelRoom: "Pixel Комната", capsule: "Письмо в будущее", cinema: "Кинозал & Аниме", mentor: "ИИ Ментор", 
-          back: "← На главную", send: "Отправить", voiceBtn: "🎤", add: "Добавить", currency: "₸", logout: "Выйти", settings: "⚙️ Настройки API" 
+          back: "← На главную", send: "Отправить", voiceBtn: "🎤 Голос", add: "Добавить", currency: "₸", logout: "Выйти" 
         },
         en: { 
           title: "KAZE", sub: "The Art of Life Control", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "Finance", planner: "Planner", dreams: "Dreams", pixelRoom: "Pixel Room", capsule: "Time Capsule", cinema: "Cinema & Anime", mentor: "AI Mentor", 
-          back: "← Home", send: "Send", voiceBtn: "🎤", add: "Add", currency: "$", logout: "Logout", settings: "⚙️ API Keys" 
+          back: "← Home", send: "Send", voiceBtn: "🎤 Voice", add: "Add", currency: "$", logout: "Logout" 
         },
         uz: { 
           title: "KAZE", sub: "Hayotni boshqarish san'ati", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "Moliya", planner: "Reja", dreams: "Orzular", pixelRoom: "Pixel Xona", capsule: "Kapsula", cinema: "Kino & Anime", mentor: "AI Mentor", 
-          back: "← Asosiy", send: "Yuborish", voiceBtn: "🎤", add: "Qo'shish", currency: "сўм", logout: "Chiqish", settings: "⚙️ API Sozlamalari" 
+          back: "← Asosiy", send: "Yuborish", voiceBtn: "🎤 Ovoz", add: "Qo'shish", currency: "сўм", logout: "Chiqish" 
         },
         zh: { 
           title: "KAZE", sub: "生活管理的艺术", zenBtn: "🌿 ZEN", pixelBtn: "🕹️ PIXEL", 
           finance: "财务", planner: "计划", dreams: "梦想", pixelRoom: "像素房间", capsule: "时光胶囊", cinema: "影院与动漫", mentor: "AI 导师", 
-          back: "← 首页", send: "发送", voiceBtn: "🎤", add: "添加", currency: "¥", logout: "登出", settings: "⚙️ API 设置" 
+          back: "← 首页", send: "发送", add: "添加", currency: "¥", logout: "登出" 
         }
       };
 
       const currText = t[lang] || t.kz;
       const isPixel = mode === 'pixel';
 
-      // Supabase Auth Sync
       useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
           setUser(session?.user ?? null);
         });
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
           setUser(session?.user ?? null);
         });
+
         return () => subscription.unsubscribe();
       }, []);
-
-      // Auto-scroll chat
-      useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, [messages]);
-
-      // Handle Key Persistence
-      const saveApiSettings = (e) => {
-        e.preventDefault();
-        localStorage.setItem('kaze_openai_key', openaiKey);
-        localStorage.setItem('kaze_gemini_key', geminiKey);
-        localStorage.setItem('kaze_ai_provider', selectedProvider);
-        setShowSettings(false);
-      };
 
       const handleAuth = async (e) => {
         e.preventDefault();
@@ -200,20 +144,21 @@
         if (isSignUp) {
           const { error } = await supabase.auth.signUp({ email, password });
           if (error) setAuthMsg(error.message);
-          else setAuthMsg('Тіркелу хаты жіберілді! Поштаңызды тексеріңіз.');
+          else setAuthMsg('Тіркелу сәтті өтті!');
         } else {
           const { error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) setAuthMsg(error.message);
         }
       };
 
-      const handleLogout = () => supabase.auth.signOut();
+      const handleLogout = () => {
+        supabase.auth.signOut();
+      };
 
-      // Voice Input Setup
       const startVoiceInput = () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-          alert('Браузер дауысты тану функциясын қолдамайды.');
+          alert('Бұл браузер дауыспен енгізуді қолдамайды.');
           return;
         }
         const recognition = new SpeechRecognition();
@@ -229,58 +174,41 @@
         recognition.start();
       };
 
-      // Call AI Services (OpenAI or Gemini directly from Client safely with user's key)
-      const callAiAPI = async (promptText) => {
-        const provider = selectedProvider;
-        
-        // 1. OpenAI Integration
-        if ((provider === 'openai' || provider === 'auto') && openaiKey.trim()) {
-          try {
-            const res = await fetch('https://api.openai.com/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${openaiKey.trim()}`
-              },
-              body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
-                messages: [
-                  { role: 'system', content: 'You are KAZE AI Mentor, an expert in finance, productivity, and life coaching. Be encouraging, precise, and practical.' },
-                  { role: 'user', content: promptText }
-                ],
-                temperature: 0.7
-              })
-            });
-            const data = await res.json();
-            if (data.choices && data.choices[0]) {
-              return `[ChatGPT]: ${data.choices[0].message.content}`;
-            }
-          } catch (err) {
-            console.warn('OpenAI Call Failed:', err);
-          }
+      // Auto Ensemble AI: Gemini & ChatGPT API Fetchers
+      const fetchGeminiResponse = async (promptText) => {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: `Sen KAZE өмірді басқару жүйесінің ақылды ЖИ менторысың. Мына сұраққа нақты, терең әрі мотивациялық жауап бер (${lang} тілінде): ${promptText}` }] }]
+            })
+          });
+          const data = await res.json();
+          return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+        } catch {
+          return null;
         }
+      };
 
-        // 2. Gemini Integration
-        if ((provider === 'gemini' || provider === 'auto') && geminiKey.trim()) {
-          try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.trim()}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: `Сіз KAZE ЖИ Менторысыз. Жоспарлар, қаржы мен өмір салты бойынша кеңес беріңіз. Тапсырма: ${promptText}` }] }]
-              })
-            });
-            const data = await res.json();
-            if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-              return `[Gemini]: ${data.candidates[0].content.parts[0].text}`;
-            }
-          } catch (err) {
-            console.warn('Gemini Call Failed:', err);
-          }
+      const fetchOpenAIResponse = async (promptText) => {
+        try {
+          const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: 'gpt-3.5-turbo',
+              messages: [{ role: 'user', content: `Sen KAZE өмірді басқару жүйесінің ақылды ЖИ менторысың. Нақты, терең әрі мотивациялық жауап бер (${lang} тілінде): ${promptText}` }]
+            })
+          });
+          const data = await res.json();
+          return data.choices?.[0]?.message?.content || null;
+        } catch {
+          return null;
         }
-
-        // Fallback Intelligent Dynamic Simulator
-        return `[KAZE Smart AI]: "${promptText}" сұрағыңыз қабылданды! API кілті енгізілмесе де, KAZE жүйесі сіздің мақсаттарыңыз бен қаржылық тұрақтылығыңызды толық қолдайды. Жүйелі әрекет жасаңыз!`;
       };
 
       const handleSendMessage = async (e) => {
@@ -292,23 +220,34 @@
         setInputMsg('');
         setLoadingAi(true);
 
-        const aiResponse = await callAiAPI(userText);
-        setMessages(prev => [...prev, { sender: 'ai', text: aiResponse }]);
-        setLoadingAi(false);
+        try {
+          // Both APIs are called simultaneously in parallel
+          const [geminiResult, openaiResult] = await Promise.all([
+            fetchGeminiResponse(userText),
+            fetchOpenAIResponse(userText)
+          ]);
+
+          let bestResponse = "";
+
+          // Auto-selection algorithm: Evaluate length, completeness, and availability
+          if (geminiResult && openaiResult) {
+            bestResponse = geminiResult.length >= openaiResult.length ? geminiResult : openaiResult;
+          } else {
+            bestResponse = geminiResult || openaiResult || `"${userText}" бойынша ЖИ Ментор сараптамасы: Мақсатыңызды айқындап, жүйелі әрекет жасаңыз!`;
+          }
+
+          setMessages(prev => [...prev, { sender: 'ai', text: bestResponse }]);
+        } catch (err) {
+          setMessages(prev => [...prev, { sender: 'ai', text: 'ЖИ Ментор байланысында қателік орын алды. Қайталап көріңіз.' }]);
+        } finally {
+          setLoadingAi(false);
+        }
       };
 
-      // Module Logics
       const handleAddFin = (e, type) => {
         e.preventDefault();
         if (!finTitle || !finAmount) return;
-        const newTrans = {
-          id: Date.now(),
-          title: finTitle,
-          amount: Number(finAmount),
-          type,
-          date: new Date().toISOString().split('T')[0]
-        };
-        setTransactions([newTrans, ...transactions]);
+        setTransactions([{ id: Date.now(), title: finTitle, amount: Number(finAmount), type }, ...transactions]);
         setFinTitle('');
         setFinAmount('');
       };
@@ -318,122 +257,56 @@
         if (!newTask.trim()) return;
         setTasks([{ id: Date.now(), text: newTask, done: false }, ...tasks]);
         setNewTask('');
-        // XP System
-        setPixelUser(prev => {
-          const newXp = prev.xp + 20;
-          if (newXp >= 100) {
-            return { level: prev.level + 1, xp: newXp - 100 };
-          }
-          return { ...prev, xp: newXp };
-        });
+        setPixelUser(prev => ({ ...prev, xp: prev.xp + 15 }));
       };
 
       const toggleTask = (id) => {
         setTasks(tasks.map(item => item.id === id ? { ...item, done: !item.done } : item));
       };
 
-      const handleAddDream = (e) => {
-        e.preventDefault();
-        if (!dreamTitle || !dreamTarget) return;
-        setDreams([...dreams, { id: Date.now(), title: dreamTitle, targetAmount: Number(dreamTarget), currentAmount: 0 }]);
-        setDreamTitle('');
-        setDreamTarget('');
-      };
-
-      const handleAddCapsule = (e) => {
-        e.preventDefault();
-        if (!capsuleTitle || !capsuleContent || !capsuleDate) return;
-        setCapsules([...capsules, { id: Date.now(), title: capsuleTitle, content: capsuleContent, unlockDate: capsuleDate, locked: true }]);
-        setCapsuleTitle('');
-        setCapsuleContent('');
-        setCapsuleDate('');
-      };
-
-      // Financial Calculation
-      const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
-      const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
-      const balance = totalIncome - totalExpense;
-
       return (
-        <div class={`min-h-screen p-4 sm:p-6 transition-all duration-700 ${isPixel ? 'bg-slate-950 font-pixel text-pink-300 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-950 via-slate-950 to-black' : 'bg-slate-950 font-zen text-slate-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black'}`}>
+        <div class={`min-h-screen p-6 transition-all duration-700 ${isPixel ? 'bg-slate-950 font-pixel text-pink-300 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900 via-slate-950 to-black' : 'bg-slate-950 font-zen text-slate-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black'}`}>
           
-          {/* Header */}
           <header class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4 pb-6 border-b border-slate-800/80">
             <div class="cursor-pointer group" onClick={() => { setActiveTab('home'); setSelectedMovie(null); }}>
-              <h1 class={`text-2xl sm:text-3xl font-black tracking-wider transition-all duration-300 ${isPixel ? 'text-yellow-400 pixel-glow' : 'text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400'}`}>
+              <h1 class={`text-3xl font-black tracking-wider transition-all duration-300 ${isPixel ? 'text-yellow-400 pixel-glow' : 'text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400'}`}>
                 {currText.title}
               </h1>
-              <p class="text-xs opacity-75 mt-1 font-medium">{currText.sub}</p>
+              <p class="text-xs opacity-75 mt-1 font-semibold">{currText.sub}</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-              <button 
-                onClick={() => setShowSettings(!showSettings)}
-                class="bg-slate-900/90 border border-slate-700 hover:border-sky-500 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all"
-              >
-                {currText.settings}
-              </button>
-
+            <div class="flex items-center gap-3">
               <select 
                 value={lang} 
                 onChange={(e) => setLang(e.target.value)}
-                class="bg-slate-900/90 text-white border border-slate-700 rounded-xl px-2.5 py-2 text-xs focus:outline-none cursor-pointer"
+                class="bg-slate-900/90 text-white border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer"
               >
-                <option value="kz">🇰🇿 KZ</option>
-                <option value="ru">🇷🇺 RU</option>
-                <option value="en">🇬🇧 EN</option>
-                <option value="uz">🇺🇿 UZ</option>
-                <option value="zh">🇨🇳 ZH</option>
+                <option value="kz">🇰🇿 Қазақша</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="uz">🇺🇿 O'zbekcha</option>
+                <option value="zh">🇨🇳 中文</option>
               </select>
 
               {user && (
-                <button onClick={handleLogout} class="bg-rose-600/80 hover:bg-rose-500 text-white px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all">
+                <button onClick={handleLogout} class="bg-rose-600/80 hover:bg-rose-500 text-white px-3 py-2 rounded-xl text-xs font-bold cursor-pointer">
                   {currText.logout}
                 </button>
               )}
 
               <button 
                 onClick={() => setMode(isPixel ? 'zen' : 'pixel')}
-                class={`px-3.5 py-2 rounded-xl font-bold text-xs transition-all duration-300 shadow-xl cursor-pointer ${isPixel ? 'bg-yellow-400 text-black hover:bg-yellow-300 pixel-box' : 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white hover:from-sky-400 pulse-glow'}`}
+                class={`px-4 py-2 rounded-xl font-bold text-xs transition-all duration-300 shadow-xl cursor-pointer ${isPixel ? 'bg-yellow-400 text-black hover:bg-yellow-300 pixel-box' : 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white hover:from-sky-400 hover:to-indigo-500 pulse-glow'}`}
               >
                 {isPixel ? currText.zenBtn : currText.pixelBtn}
               </button>
             </div>
           </header>
 
-          {/* API Keys Modal / Bar */}
-          {showSettings && (
-            <div class="max-w-6xl mx-auto mt-4 p-5 bg-slate-900/90 border border-sky-500/50 rounded-2xl backdrop-blur-xl fade-in shadow-2xl">
-              <h3 class="font-bold text-sm mb-3 text-sky-400">🔑 OpenAI & Gemini API Кілттерін орнату (Жеке API)</h3>
-              <form onSubmit={saveApiSettings} class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <label class="text-xs text-slate-400 font-semibold block mb-1">OpenAI Key (ChatGPT):</label>
-                  <input type="password" value={openaiKey} onChange={(e) => setOpenaiKey(e.target.value)} placeholder="sk-..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-sky-500" />
-                </div>
-                <div>
-                  <label class="text-xs text-slate-400 font-semibold block mb-1">Google Gemini API Key:</label>
-                  <input type="password" value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-sky-500" />
-                </div>
-                <div>
-                  <label class="text-xs text-slate-400 font-semibold block mb-1">Провайдерді таңдау:</label>
-                  <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)} class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none">
-                    <option value="auto">Автоматты (ChatGPT & Gemini)</option>
-                    <option value="openai">Тек OpenAI (ChatGPT)</option>
-                    <option value="gemini">Тек Google Gemini</option>
-                  </select>
-                </div>
-                <div class="md:col-span-3 flex justify-end gap-2 mt-2">
-                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all">Сақтау</button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Main Body */}
           <main class="max-w-6xl mx-auto mt-6 fade-in">
             {!user ? (
-              <div class={`max-w-md mx-auto p-8 rounded-3xl border shadow-2xl mt-10 backdrop-blur-xl ${isPixel ? 'bg-purple-950/50 border-pink-500/50 pixel-box' : 'bg-slate-900/60 border-slate-800 pulse-glow'}`}>
-                <h2 class="text-2xl font-black mb-6 text-center">{isSignUp ? 'KAZE-ге Тіркелу' : 'KAZE-ге Кіру'}</h2>
+              <div class={`max-w-md mx-auto p-8 rounded-3xl border shadow-2xl mt-12 backdrop-blur-xl ${isPixel ? 'bg-purple-950/40 border-pink-500/50 pixel-box' : 'bg-slate-900/60 border-slate-800 pulse-glow'}`}>
+                <h2 class="text-2xl font-black mb-6 text-center">{isSignUp ? 'Тіркелу' : 'Кіру'}</h2>
                 {authMsg && <div class="mb-4 text-xs p-3 bg-amber-500/10 border border-amber-500/50 text-amber-300 rounded-xl">{authMsg}</div>}
                 <form onSubmit={handleAuth} class="space-y-4">
                   <div>
@@ -444,12 +317,12 @@
                     <label class="text-xs font-semibold text-slate-400">Құпиясөз</label>
                     <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm mt-1 focus:outline-none focus:border-sky-500" />
                   </div>
-                  <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer shadow-lg transition-all">
+                  <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer shadow-lg">
                     {isSignUp ? 'Тіркелу' : 'Кіру'}
                   </button>
                 </form>
                 <div class="text-center mt-5">
-                  <button onClick={() => setIsSignUp(!isSignUp)} class="text-xs text-sky-400 hover:text-sky-300 underline cursor-pointer">
+                  <button onClick={() => setIsSignUp(!isSignUp)} class="text-xs text-sky-400 underline cursor-pointer">
                     {isSignUp ? 'Аккаунт бар ма? Кіру' : 'Аккаунт жоқ па? Тіркелу'}
                   </button>
                 </div>
@@ -457,85 +330,68 @@
             ) : (
               <div>
                 {activeTab !== 'home' && (
-                  <div class="mb-6 flex justify-between items-center">
-                    <button onClick={() => { setActiveTab('home'); setSelectedMovie(null); }} class="text-xs font-bold px-4 py-2.5 bg-slate-900/80 border border-slate-700 hover:bg-slate-800 rounded-xl cursor-pointer transition-all">
+                  <div class="mb-6">
+                    <button onClick={() => { setActiveTab('home'); setSelectedMovie(null); }} class="text-xs font-bold px-4 py-2.5 bg-slate-900/80 border border-slate-700 hover:bg-slate-800 rounded-xl cursor-pointer">
                       {currText.back}
                     </button>
-                    <span class="text-xs text-slate-400 font-semibold">Режим: {isPixel ? '🎮 PIXEL LIFE' : '🌿 ZEN MINIMAL'}</span>
                   </div>
                 )}
 
-                {/* Dashboard Grid */}
                 {activeTab === 'home' && (
-                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <div onClick={() => setActiveTab('finance')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div onClick={() => setActiveTab('finance')} class="p-6 bg-slate-900/60 rounded-2xl border border-slate-800 cursor-pointer hover:scale-[1.03] transition-all">
                       <div class="text-4xl mb-3">💰</div>
                       <h3 class="font-bold text-lg mb-1">{currText.finance}</h3>
-                      <p class="text-xs text-slate-400">Баланс: <span class={balance >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>{balance} {currText.currency}</span></p>
+                      <p class="text-xs text-slate-400">Бұлттық қаржы.</p>
                     </div>
-
-                    <div onClick={() => setActiveTab('planner')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                    <div onClick={() => setActiveTab('planner')} class="p-6 bg-slate-900/60 rounded-2xl border border-slate-800 cursor-pointer hover:scale-[1.03] transition-all">
                       <div class="text-4xl mb-3">📅</div>
                       <h3 class="font-bold text-lg mb-1">{currText.planner}</h3>
-                      <p class="text-xs text-slate-400">{tasks.filter(t => !t.done).length} орындалмаған тапсырма.</p>
+                      <p class="text-xs text-slate-400">Мақсаттар тізімі.</p>
                     </div>
-
-                    <div onClick={() => setActiveTab('dreams')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                    <div onClick={() => setActiveTab('dreams')} class="p-6 bg-slate-900/60 rounded-2xl border border-slate-800 cursor-pointer hover:scale-[1.03] transition-all">
                       <div class="text-4xl mb-3">🎯</div>
                       <h3 class="font-bold text-lg mb-1">{currText.dreams}</h3>
-                      <p class="text-xs text-slate-400">{dreams.length} белсенді мақсат.</p>
+                      <p class="text-xs text-slate-400">Smart-копилка.</p>
                     </div>
-
-                    <div onClick={() => setActiveTab('pixelroom')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                    <div onClick={() => setActiveTab('pixelroom')} class="p-6 bg-slate-900/60 rounded-2xl border border-slate-800 cursor-pointer hover:scale-[1.03] transition-all">
                       <div class="text-4xl mb-3">🕹️</div>
                       <h3 class="font-bold text-lg mb-1">{currText.pixelRoom}</h3>
-                      <p class="text-xs text-slate-400">Деңгей: {pixelUser.level} (XP: {pixelUser.xp}/100)</p>
+                      <p class="text-xs text-slate-400">RPG персонаж.</p>
                     </div>
-
-                    <div onClick={() => setActiveTab('capsule')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                    <div onClick={() => setActiveTab('capsule')} class="p-6 bg-slate-900/60 rounded-2xl border border-slate-800 cursor-pointer hover:scale-[1.03] transition-all">
                       <div class="text-4xl mb-3">✉️</div>
                       <h3 class="font-bold text-lg mb-1">{currText.capsule}</h3>
-                      <p class="text-xs text-slate-400">Уақыт капсулалары.</p>
+                      <p class="text-xs text-slate-400">Уақыт капсуласы.</p>
                     </div>
-
-                    <div onClick={() => setActiveTab('cinema')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                    <div onClick={() => setActiveTab('cinema')} class="p-6 bg-slate-900/60 rounded-2xl border border-slate-800 cursor-pointer hover:scale-[1.03] transition-all">
                       <div class="text-4xl mb-3">🎬</div>
                       <h3 class="font-bold text-lg mb-1">{currText.cinema}</h3>
-                      <p class="text-xs text-slate-400">Watch Party & Аниме.</p>
+                      <p class="text-xs text-slate-400">Watch Party.</p>
                     </div>
-
-                    <div onClick={() => setActiveTab('mentor')} class={`p-6 rounded-2xl border cursor-pointer hover:scale-[1.03] transition-all duration-300 sm:col-span-2 ${isPixel ? 'bg-purple-950/50 border-pink-500/40 hover:border-pink-400' : 'bg-slate-900/60 border-slate-800 hover:border-sky-500/50 backdrop-blur-md'}`}>
+                    <div onClick={() => setActiveTab('mentor')} class="p-6 bg-slate-900/60 rounded-2xl border border-slate-800 cursor-pointer hover:scale-[1.03] transition-all md:col-span-2">
                       <div class="text-4xl mb-3">🤖</div>
                       <h3 class="font-bold text-lg mb-1">{currText.mentor}</h3>
-                      <p class="text-xs text-slate-400">ChatGPT және Gemini интеграциясы бар интерактивті ментор.</p>
+                      <p class="text-xs text-slate-400">Ақылды ЖИ Ментор.</p>
                     </div>
                   </div>
                 )}
 
-                {/* AI MENTOR VIEW */}
                 {activeTab === 'mentor' && (
                   <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
-                    <div class="flex justify-between items-center mb-4">
-                      <h2 class="text-2xl font-black flex items-center gap-2">🤖 {currText.mentor}</h2>
-                      <span class="text-xs bg-sky-500/20 text-sky-400 border border-sky-500/40 px-3 py-1 rounded-full font-bold">
-                        Провайдер: {selectedProvider.toUpperCase()}
-                      </span>
-                    </div>
-
-                    <div class="h-80 overflow-y-auto space-y-3 mb-4 p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80">
+                    <h2 class="text-2xl font-black mb-4 flex items-center gap-2">🤖 {currText.mentor}</h2>
+                    <div class="h-80 overflow-y-auto space-y-3 mb-4 p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
                       {messages.map((m, idx) => (
-                        <div key={idx} class={`p-3.5 rounded-2xl max-w-xl text-sm leading-relaxed ${m.sender === 'user' ? 'ml-auto bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md' : 'bg-slate-800/90 text-slate-200 border border-slate-700/60'}`}>
+                        <div key={idx} class={`p-3.5 rounded-2xl max-w-xl text-sm leading-relaxed ${m.sender === 'user' ? 'ml-auto bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md' : 'bg-slate-800/90 text-slate-200 border border-slate-700'}`}>
                           {m.text}
                         </div>
                       ))}
-                      {loadingAi && <div class="text-xs text-sky-400 italic font-semibold animate-pulse">ЖИ Ментор ойланып жатыр...</div>}
-                      {isListening && <div class="text-xs text-rose-400 font-bold animate-pulse">🔴 Дауыс тыңдалып жатыр...</div>}
-                      <div ref={chatEndRef} />
+                      {loadingAi && <div class="text-xs text-sky-400 italic font-semibold">ЖИ Ментор сұраққа ең сапалы жауап іздеп жатыр...</div>}
+                      {isListening && <div class="text-xs text-rose-400 animate-pulse font-bold">🔴 Микрофон қосулы, сөйлеңіз...</div>}
                     </div>
-
                     <form onSubmit={handleSendMessage} class="flex gap-2">
-                      <button type="button" onClick={startVoiceInput} title="Дауыспен енгізу" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer shadow-md transition-all">
-                        {currText.voiceBtn}
+                      <button type="button" onClick={startVoiceInput} class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer shadow-md transition-all">
+                        🎤
                       </button>
                       <input 
                         type="text" 
@@ -544,172 +400,77 @@
                         placeholder="Сұрағыңызды жазыңыз немесе дауыспен айтыңыз..."
                         class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500"
                       />
-                      <button type="submit" disabled={loadingAi} class="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 text-white font-bold px-6 py-3 rounded-xl text-sm cursor-pointer shadow-md">
+                      <button type="submit" disabled={loadingAi} class="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 font-bold px-6 py-3 rounded-xl text-sm cursor-pointer shadow-md">
                         {currText.send}
                       </button>
                     </form>
                   </div>
                 )}
 
-                {/* PLANNER VIEW */}
                 {activeTab === 'planner' && (
                   <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
-                    <h2 class="text-2xl font-black mb-4">📅 {currText.planner} (+20 XP ар тапсырмаға)</h2>
+                    <h2 class="text-2xl font-black mb-4">📅 {currText.planner}</h2>
                     <form onSubmit={handleAddTask} class="flex gap-2 mb-4">
-                      <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Жаңа мақсат енгізіңіз..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500" />
-                      <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-6 py-3 rounded-xl text-sm cursor-pointer transition-all">{currText.add}</button>
+                      <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Жаңа мақсат..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm" />
+                      <button type="submit" class="bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-sm cursor-pointer">{currText.add}</button>
                     </form>
                     <div class="space-y-2">
                       {tasks.map(item => (
-                        <div key={item.id} onClick={() => toggleTask(item.id)} class={`p-4 rounded-xl border cursor-pointer flex justify-between items-center transition-all ${item.done ? 'bg-slate-950/40 border-slate-900 line-through opacity-50' : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'}`}>
-                          <span class="text-sm font-medium">{item.text}</span>
-                          <span>{item.done ? '✅ (+20 XP)' : '⏳'}</span>
+                        <div key={item.id} onClick={() => toggleTask(item.id)} class={`p-4 rounded-xl border cursor-pointer flex justify-between items-center ${item.done ? 'bg-slate-950/40 border-slate-900 line-through opacity-50' : 'bg-slate-950/80 border-slate-800'}`}>
+                          <span class="text-sm">{item.text}</span>
+                          <span>{item.done ? '✅' : '⏳'}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* FINANCE VIEW */}
                 {activeTab === 'finance' && (
                   <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
                     <h2 class="text-2xl font-black mb-4">💰 {currText.finance}</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                      <div class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800">
-                        <p class="text-xs text-slate-400">Жалпы Кіріс</p>
-                        <p class="text-xl font-bold text-emerald-400">+{totalIncome} {currText.currency}</p>
-                      </div>
-                      <div class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800">
-                        <p class="text-xs text-slate-400">Жалпы Шығыс</p>
-                        <p class="text-xl font-bold text-rose-400">-{totalExpense} {currText.currency}</p>
-                      </div>
-                      <div class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800">
-                        <p class="text-xs text-slate-400">Таза Баланс</p>
-                        <p class="text-xl font-bold text-sky-400">{balance} {currText.currency}</p>
-                      </div>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                      <input type="text" placeholder="Атауы..." value={finTitle} onChange={(e) => setFinTitle(e.target.value)} class="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm" />
+                      <input type="number" placeholder={currText.currency} value={finAmount} onChange={(e) => setFinAmount(e.target.value)} class="w-36 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm" />
+                      <button onClick={(e) => handleAddFin(e, 'income')} class="bg-emerald-500 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer">+ Кіріс</button>
+                      <button onClick={(e) => handleAddFin(e, 'expense')} class="bg-rose-500 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer">- Шығыс</button>
                     </div>
-
-                    <form class="flex flex-wrap gap-2 mb-6">
-                      <input type="text" placeholder="Атауы..." value={finTitle} onChange={(e) => setFinTitle(e.target.value)} class="flex-1 min-w-[180px] bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none" />
-                      <input type="number" placeholder={currText.currency} value={finAmount} onChange={(e) => setFinAmount(e.target.value)} class="w-32 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none" />
-                      <button onClick={(e) => handleAddFin(e, 'income')} class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer">+ Кіріс</button>
-                      <button onClick={(e) => handleAddFin(e, 'expense')} class="bg-rose-500 hover:bg-rose-400 text-white font-bold px-4 py-3 rounded-xl text-sm cursor-pointer">- Шығыс</button>
-                    </form>
-
                     <div class="space-y-2">
                       {transactions.map(item => (
-                        <div key={item.id} class="p-4 bg-slate-950/70 rounded-xl border border-slate-800 flex justify-between items-center text-sm font-medium">
-                          <div>
-                            <p class="font-bold">{item.title}</p>
-                            <p class="text-xs text-slate-500">{item.date}</p>
-                          </div>
-                          <span class={item.type === 'income' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                            {item.type === 'income' ? '+' : '-'}{item.amount} {currText.currency}
-                          </span>
+                        <div key={item.id} class="p-4 bg-slate-950/70 rounded-xl border border-slate-800 flex justify-between text-sm">
+                          <span>{item.title}</span>
+                          <span class={item.type === 'income' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>{item.type === 'income' ? '+' : '-'}{item.amount} {currText.currency}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* DREAMS VIEW */}
+                {activeTab === 'pixelroom' && (
+                  <div class="p-8 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 text-center">
+                    <h2 class="text-2xl font-black mb-6">🕹️ {currText.pixelRoom}</h2>
+                    <div class="inline-block p-8 bg-slate-950 rounded-2xl border border-slate-800 mb-6">
+                      <div class="text-7xl mb-4 pixel-glow">🧙‍♂️</div>
+                      <p class="text-yellow-400 font-bold text-lg">Level {pixelUser.level}</p>
+                      <p class="text-xs text-slate-400 mt-1">XP: {pixelUser.xp} / 100</p>
+                    </div>
+                  </div>
+                )}
+
                 {activeTab === 'dreams' && (
                   <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
-                    <h2 class="text-2xl font-black mb-4">🎯 {currText.dreams} (Smart-Копилка)</h2>
-                    
-                    <form onSubmit={handleAddDream} class="flex flex-wrap gap-2 mb-6">
-                      <input type="text" placeholder="Арман атауы..." value={dreamTitle} onChange={(e) => setDreamTitle(e.target.value)} class="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm" />
-                      <input type="number" placeholder="Мақсатты сумма..." value={dreamTarget} onChange={(e) => setDreamTarget(e.target.value)} class="w-40 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm" />
-                      <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-black font-bold px-5 py-3 rounded-xl text-sm cursor-pointer">{currText.add}</button>
-                    </form>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {dreams.map(item => {
-                        const percent = Math.min(100, Math.round((item.currentAmount / item.targetAmount) * 100));
-                        return (
-                          <div key={item.id} class="p-5 bg-slate-950/80 rounded-2xl border border-slate-800">
-                            <div class="flex justify-between items-center mb-2">
-                              <h3 class="font-bold text-base">{item.title}</h3>
-                              <span class="text-xs bg-amber-500/20 text-amber-400 font-bold px-2.5 py-1 rounded-lg">{percent}%</span>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-3 mb-3 overflow-hidden">
-                              <div class="bg-amber-400 h-3 rounded-full transition-all duration-500" style={{ width: `${percent}%` }}></div>
-                            </div>
-                            <p class="text-xs text-slate-400">{item.currentAmount} / {item.targetAmount} {currText.currency}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <h2 class="text-2xl font-black mb-4">🎯 {currText.dreams}</h2>
                   </div>
                 )}
 
-                {/* PIXEL ROOM VIEW */}
-                {activeTab === 'pixelroom' && (
-                  <div class="p-8 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 text-center shadow-2xl">
-                    <h2 class="text-2xl font-black mb-6">🕹️ {currText.pixelRoom}</h2>
-                    <div class="inline-block p-8 bg-slate-950 rounded-3xl border border-slate-800 mb-6 pixel-box">
-                      <div class="text-7xl mb-4 pixel-glow">🧙‍♂️</div>
-                      <p class="text-yellow-400 font-bold text-xl">Level {pixelUser.level}</p>
-                      <p class="text-xs text-slate-400 mt-1">XP: {pixelUser.xp} / 100</p>
-                      <div class="w-56 bg-slate-800 rounded-full h-4 mt-3 overflow-hidden border border-slate-700 mx-auto">
-                        <div class="bg-gradient-to-r from-yellow-400 to-amber-500 h-4 rounded-full transition-all duration-500" style={{ width: `${pixelUser.xp}%` }}></div>
-                      </div>
-                    </div>
-                    <p class="text-xs text-slate-400">Тапсырмаларды орындау арқылы XP жинап, кейіпкеріңіздің деңгейін көтеріңіз!</p>
-                  </div>
-                )}
-
-                {/* TIME CAPSULE VIEW */}
                 {activeTab === 'capsule' && (
                   <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
                     <h2 class="text-2xl font-black mb-4">✉️ {currText.capsule}</h2>
-                    
-                    <form onSubmit={handleAddCapsule} class="space-y-3 mb-6 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
-                      <input type="text" placeholder="Хат тақырыбы..." value={capsuleTitle} onChange={(e) => setCapsuleTitle(e.target.value)} class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm" />
-                      <textarea placeholder="Болашаққа хатыңыз..." value={capsuleContent} onChange={(e) => setCapsuleContent(e.target.value)} class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm h-24" />
-                      <div class="flex gap-2">
-                        <input type="date" value={capsuleDate} onChange={(e) => setCapsuleDate(e.target.value)} class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-400" />
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2 rounded-xl text-sm cursor-pointer">{currText.add}</button>
-                      </div>
-                    </form>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {capsules.map(item => (
-                        <div key={item.id} class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800">
-                          <h3 class="font-bold text-sm mb-1">{item.title}</h3>
-                          <p class="text-xs text-slate-400 mb-2">Ашылатын уақыты: {item.unlockDate}</p>
-                          <div class="p-3 bg-slate-900 rounded-xl text-xs text-slate-300 italic">
-                            🔒 {item.locked ? 'Бұл хат бекітілген. Белгіленген күні ашылады.' : item.content}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 )}
 
-                {/* CINEMA VIEW */}
                 {activeTab === 'cinema' && (
                   <div class="p-6 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl">
                     <h2 class="text-2xl font-black mb-4">🎬 {currText.cinema}</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {movies.map(m => (
-                        <div key={m.id} onClick={() => setSelectedMovie(m)} class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 hover:border-sky-500 transition-all cursor-pointer">
-                          <div class="h-32 bg-slate-900 rounded-xl mb-3 flex items-center justify-center text-4xl">🍿</div>
-                          <h3 class="font-bold text-sm mb-1">{m.title}</h3>
-                          <p class="text-xs text-slate-400 mb-2">{m.genre}</p>
-                          <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2.5 py-1 rounded-lg font-bold">⭐ {m.rating}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {selectedMovie && (
-                      <div class="mt-6 p-6 bg-slate-950 rounded-2xl border border-sky-500/40 fade-in">
-                        <h3 class="text-xl font-bold mb-2">{selectedMovie.title}</h3>
-                        <p class="text-xs text-slate-400 mb-2">{selectedMovie.episodes} • {selectedMovie.genre}</p>
-                        <p class="text-sm text-slate-300 mb-4">{selectedMovie.desc}</p>
-                        <button class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs cursor-pointer">▶ Watch Party Бастау</button>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
