@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="kz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KAZE – Өмірді басқару өнері</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .font-pixel { font-family: 'Press Start 2P', cursive; }
+    .font-zen { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    function App() {
+      const [mode, setMode] = useState('zen');
+      const [lang, setLang] = useState('kz');
+
+      const t = {
+        kz: { title: "KAZE", sub: "Өмірді басқару өнері", zenBtn: "🌿 ZEN Режимі", pixelBtn: "🕹️ PIXEL Режимі", finance: "Қаржы", planner: "Планер", cinema: "Кинозал & Аниме", mentor: "ЖИ Ментор", status: "Жүйе белсенді 🚀" },
+        ru: { title: "KAZE", sub: "Искусство управлять жизнью", zenBtn: "🌿 ZEN Режим", pixelBtn: "🕹️ PIXEL Режим", finance: "Финансы", planner: "Планер", cinema: "Кинозал & Аниме", mentor: "ИИ Ментор", status: "Система активна 🚀" },
+        en: { title: "KAZE", sub: "The Art of Life Control", zenBtn: "🌿 ZEN Mode", pixelBtn: "🕹️ PIXEL Mode", finance: "Finance", planner: "Planner", cinema: "Cinema & Anime", mentor: "AI Mentor", status: "System Active 🚀" },
+        uz: { title: "KAZE", sub: "Hayotni boshqarish san'ati", zenBtn: "🌿 ZEN Rejimi", pixelBtn: "🕹️ PIXEL Rejimi", finance: "Moliya", planner: "Reja", cinema: "Kino & Anime", mentor: "AI Mentor", status: "Tizim faol 🚀" },
+        zh: { title: "KAZE", sub: "生活管理的艺术", zenBtn: "🌿 ZEN 模式", pixelBtn: "🕹️ PIXEL 模式", finance: "财务", planner: "计划", cinema: "影院与动漫", mentor: "AI 导师", status: "系统已激活 🚀" }
+      };
+
+      const isPixel = mode === 'pixel';
+
+      return (
+        <div class={`min-h-screen p-6 transition-colors duration-500 ${isPixel ? 'bg-purple-950 font-pixel text-pink-300' : 'bg-slate-900 font-zen text-slate-100'}`}>
+          {/* Header */}
+          <header class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4 pb-6 border-b border-slate-700/50">
+            <div>
+              <h1 class={`text-3xl font-bold tracking-wider ${isPixel ? 'text-yellow-400 drop-shadow-[0_2px_0_#000]' : 'text-sky-400'}`}>
+                {t[lang].title}
+              </h1>
+              <p class="text-sm opacity-75 mt-1">{t[lang].sub}</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <select 
+                value={lang} 
+                onChange={(e) => setLang(e.target.value)}
+                class="bg-slate-800 text-white border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none"
+              >
+                <option value="kz">🇰🇿 Қазақша</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="uz">🇺🇿 O'zbekcha</option>
+                <option value="zh">🇨🇳 中文</option>
+              </select>
+
+              <button 
+                onClick={() => setMode(isPixel ? 'zen' : 'pixel')}
+                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all shadow-lg ${isPixel ? 'bg-yellow-400 text-black hover:bg-yellow-300' : 'bg-sky-500 text-white hover:bg-sky-400'}`}
+              >
+                {isPixel ? t[lang].zenBtn : t[lang].pixelBtn}
+              </button>
+            </div>
+          </header>
+
+          {/* Main Grid */}
+          <main class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+            <div class={`p-5 rounded-xl border transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
+              <div class="text-2xl mb-2">💰</div>
+              <h3 class="font-bold text-lg mb-1">{t[lang].finance}</h3>
+              <p class="text-xs opacity-70">Supabase базасына қосылған бюджет қадағалау жүйесі.</p>
+            </div>
+
+            <div class={`p-5 rounded-xl border transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
+              <div class="text-2xl mb-2">📅</div>
+              <h3 class="font-bold text-lg mb-1">{t[lang].planner}</h3>
+              <p class="text-xs opacity-70">Күнделікті мақсаттар мен тайм-менеджмент.</p>
+            </div>
+
+            <div class={`p-5 rounded-xl border transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
+              <div class="text-2xl mb-2">🎬</div>
+              <h3 class="font-bold text-lg mb-1">{t[lang].cinema}</h3>
+              <p class="text-xs opacity-70">Аниме және онлайн кинозал интеграциясы.</p>
+            </div>
+
+            <div class={`p-5 rounded-xl border transition-all ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
+              <div class="text-2xl mb-2">🤖</div>
+              <h3 class="font-bold text-lg mb-1">{t[lang].mentor}</h3>
+              <p class="text-xs opacity-70">Gemini & ChatGPT қос жасанды интеллект көмекшісі.</p>
+            </div>
+          </main>
+
+          <footer class="max-w-6xl mx-auto mt-12 text-center text-xs opacity-50">
+            {t[lang].status} | KAZE OS v1.0
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
