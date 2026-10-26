@@ -36,6 +36,7 @@
       const [isSignUp, setIsSignUp] = useState(false);
       const [authMsg, setAuthMsg] = useState('');
 
+      // Smart AI Mentor State
       const [messages, setMessages] = useState([
         { sender: 'ai', text: 'Сәлем! Мен KAZE ЖИ Менторымын. Өміріңді, қаржыңды және жоспарларыңды басқаруға қалай көмектесемін?' }
       ]);
@@ -55,14 +56,10 @@
         { id: 1, title: '2027 жылғы маған хат', content: 'Сәлем, болашақтағы мен!', unlockDate: '2027-01-01', locked: true }
       ]);
 
-      // Толықтырылған Кинозал & Аниме каталогы
       const [movies] = useState([
-        { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4', episodes: '148 серия', desc: 'Гон мен Киллуаның әлемдік шытырман сапары және әкесін іздеу жолы.' },
-        { id: 2, title: 'Fight Club', genre: 'Драма / Психология', rating: '8.8', episodes: 'Толық метраж', desc: 'Ішкі еркіндік пен сананы оятуға арналған культтік туынды.' },
-        { id: 3, title: 'Cyberpunk: Edgerunners', genre: 'Аниме / Экшен', rating: '9.1', episodes: '10 серия', desc: 'Найт-Сити көшелеріндегі атыс, киберимпланттар мен мақсаттар.' },
-        { id: 4, title: 'Interstellar', genre: 'Ғылыми / Фантастика', rating: '9.3', episodes: 'Толық метраж', desc: 'Адамзатты құтқару үшін уақыт пен кеңістік арқылы сапар.' },
-        { id: 5, title: 'Attack on Titan', genre: 'Аниме / Дарк-фэнтези', rating: '9.6', episodes: '89 серия', desc: 'Адамзаттың қабырға артындағы қатыгез әлеммен күресі.' },
-        { id: 6, title: 'Arcane', genre: 'Анимация / Экшен', rating: '9.4', episodes: '9 серия', desc: 'Пилтовер мен Заун қалаларының арасындағы текетірес.' }
+        { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4', episodes: '148 серия', desc: 'Гон мен Киллуаның сапары.' },
+        { id: 2, title: 'Fight Club', genre: 'Драма / Психология', rating: '8.8', episodes: 'Толық метраж', desc: 'Ішкі еркіндік пен сананы ояту.' },
+        { id: 3, title: 'Cyberpunk: Edgerunners', genre: 'Аниме / Экшен', rating: '9.1', episodes: '10 серия', desc: 'Найт-Сити көшелері.' }
       ]);
       const [selectedMovie, setSelectedMovie] = useState(null);
 
@@ -124,6 +121,36 @@
 
       const handleLogout = () => {
         supabase.auth.signOut();
+      };
+
+      const handleSendMessage = (e) => {
+        e.preventDefault();
+        if (!inputMsg.trim() || loadingAi) return;
+        
+        const userText = inputMsg;
+        setMessages(prev => [...prev, { sender: 'user', text: userText }]);
+        setInputMsg('');
+        setLoadingAi(true);
+
+        setTimeout(() => {
+          let reply = "";
+          const txt = userText.toLowerCase();
+
+          if (txt.includes('сәлем') || txt.includes('привет') || txt.includes('hello')) {
+            reply = "Сәлем! Бүгін өміріңді жақсарту үшін қандай қадам жасаймыз?";
+          } else if (txt.includes('ақша') || txt.includes('қаржы') || txt.includes('деньги') || txt.includes('money')) {
+            reply = "Қаржылық тәртіп — еркіндіктің негізі. Барлық кірістер мен шығыстарды «Қаржы» бөліміне жазып отыруды ұмытпа!";
+          } else if (txt.includes('мақсат') || txt.includes('жоспар') || txt.includes('план') || txt.includes('goal')) {
+            reply = "Үлкен мақсатты кішкентай қадамдарға бөл. Оларды «Планер» бөліміне қосып, күнде біреуін орындап отыр!";
+          } else if (txt.includes('шаршадым') || txt.includes('мотивация') || txt.includes('устал')) {
+            reply = "Әрбір үлкен жеңіс кішкентай демалыстан басталады. «Кинозал» бөліміне өтіп, сүйікті анимеңді немесе фильмді көріп сергіп ал!";
+          } else {
+            reply = `"${userText}" бойынша ойландым: Ең бастысы — сабырлық пен жүйелілік. Бұл қадамды Планерге енгізіп, орындауға кірісейік!`;
+          }
+
+          setMessages(prev => [...prev, { sender: 'ai', text: reply }]);
+          setLoadingAi(false);
+        }, 600);
       };
 
       const handleAddFin = (e, type) => {
@@ -250,34 +277,43 @@
                   </div>
                 )}
 
+                {activeTab === 'mentor' && (
+                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
+                    <h2 class="text-2xl font-bold mb-4">🤖 {currText.mentor}</h2>
+                    <div class="h-80 overflow-y-auto space-y-3 mb-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+                      {messages.map((m, idx) => (
+                        <div key={idx} class={`p-3 rounded-xl max-w-xl text-sm ${m.sender === 'user' ? 'ml-auto bg-sky-600 text-white' : 'bg-slate-700 text-slate-200'}`}>
+                          {m.text}
+                        </div>
+                      ))}
+                      {loadingAi && <div class="text-xs text-sky-400 italic">ЖИ Ментор ойланып жатыр...</div>}
+                    </div>
+                    <form onSubmit={handleSendMessage} class="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={inputMsg}
+                        onChange={(e) => setInputMsg(e.target.value)}
+                        placeholder="Сұрағыңызды немесе ойыңызды жазыңыз..."
+                        class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none"
+                      />
+                      <button type="submit" disabled={loadingAi} class="bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl text-sm cursor-pointer">
+                        {currText.send}
+                      </button>
+                    </form>
+                  </div>
+                )}
+
                 {activeTab === 'cinema' && (
                   <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
                     <h2 class="text-2xl font-bold mb-4">🎬 {currText.cinema}</h2>
-                    {selectedMovie ? (
-                      <div class="p-6 bg-slate-900 rounded-xl border border-slate-700">
-                        <button onClick={() => setSelectedMovie(null)} class="text-xs text-sky-400 mb-4 underline cursor-pointer">← Каталогқа оралу</button>
-                        <h3 class="text-2xl font-bold mb-2">{selectedMovie.title}</h3>
-                        <p class="text-xs text-amber-400 mb-1">⭐ {selectedMovie.rating} | {selectedMovie.genre}</p>
-                        <p class="text-xs text-slate-400 mb-3">📦 {selectedMovie.episodes}</p>
-                        <p class="text-sm opacity-90 mb-6">{selectedMovie.desc}</p>
-                        <div class="p-8 bg-slate-950 rounded-xl text-center border border-slate-800">
-                          <span class="text-4xl">🍿</span>
-                          <p class="text-sm mt-2 text-sky-400 font-bold">Watch Party сеансы қосылды!</p>
-                          <p class="text-xs opacity-60 mt-1">Достармен бірге көру және талқылау аймағы.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {movies.map(m => (
+                        <div key={m.id} class="p-4 bg-slate-900 rounded-xl border border-slate-800">
+                          <h3 class="font-bold text-sm mb-1">{m.title}</h3>
+                          <p class="text-xs opacity-75">{m.genre}</p>
                         </div>
-                      </div>
-                    ) : (
-                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {movies.map(m => (
-                          <div key={m.id} onClick={() => setSelectedMovie(m)} class="p-5 bg-slate-900 rounded-xl border border-slate-800 cursor-pointer hover:border-sky-500 transition-all shadow-md">
-                            <div class="h-36 bg-slate-800 rounded-lg mb-3 flex items-center justify-center text-4xl">🍿</div>
-                            <h3 class="font-bold text-base mb-1">{m.title}</h3>
-                            <p class="text-xs opacity-75 mb-2">{m.genre} • {m.episodes}</p>
-                            <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2.5 py-1 rounded font-bold">⭐ {m.rating}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -336,12 +372,6 @@
                 {activeTab === 'capsule' && (
                   <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
                     <h2 class="text-2xl font-bold mb-4">✉️ {currText.capsule}</h2>
-                  </div>
-                )}
-
-                {activeTab === 'mentor' && (
-                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4">🤖 {currText.mentor}</h2>
                   </div>
                 )}
               </div>
