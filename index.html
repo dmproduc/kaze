@@ -52,10 +52,16 @@
       const [dreams, setDreams] = useState([
         { id: 1, title: 'Жаңа ноутбук', targetAmount: 500000, currentAmount: 150000 }
       ]);
-      const [dreamTitle, setDreamTitle] = useState('');
-      const [dreamTarget, setDreamTarget] = useState('');
 
       const [pixelUser, setPixelUser] = useState({ level: 1, xp: 40 });
+
+      // Time Capsules (Болашаққа хат) State
+      const [capsules, setCapsules] = useState([
+        { id: 1, title: '2027 жылғы маған хат', content: 'Сәлем, болашақтағы мен! KAZE супер-қосымшасы табысты болды ма?', unlockDate: '2027-01-01', locked: true }
+      ]);
+      const [capTitle, setCapTitle] = useState('');
+      const [capContent, setCapContent] = useState('');
+      const [capDate, setCapDate] = useState('');
 
       const [movies] = useState([
         { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4' },
@@ -63,31 +69,30 @@
         { id: 3, title: 'Cyberpunk: Edgerunners', genre: 'Аниме / Экшен', rating: '9.1' }
       ]);
 
-      // 5 Tildik sozdigi (i18n)
       const t = {
         kz: { 
           title: "KAZE", sub: "Өмірді басқару өнері", zenBtn: "🌿 ZEN Режимі", pixelBtn: "🕹️ PIXEL Режимі", 
-          finance: "Қаржы", planner: "Планер", dreams: "Армандар", pixelRoom: "Pixel Бөлме", cinema: "Кинозал & Аниме", mentor: "ЖИ Ментор", 
+          finance: "Қаржы", planner: "Планер", dreams: "Армандар", pixelRoom: "Pixel Бөлме", capsule: "Болашаққа хат", cinema: "Кинозал & Аниме", mentor: "ЖИ Ментор", 
           back: "← Басты бетке", send: "Жіберу", add: "Қосу", currency: "₸", logout: "Шығу" 
         },
         ru: { 
           title: "KAZE", sub: "Искусство управлять жизнью", zenBtn: "🌿 ZEN Режим", pixelBtn: "🕹️ PIXEL Режим", 
-          finance: "Финансы", planner: "Планер", dreams: "Мечты", pixelRoom: "Pixel Комната", cinema: "Кинозал & Аниме", mentor: "ИИ Ментор", 
+          finance: "Финансы", planner: "Планер", dreams: "Мечты", pixelRoom: "Pixel Комната", capsule: "Письмо в будущее", cinema: "Кинозал & Аниме", mentor: "ИИ Ментор", 
           back: "← На главную", send: "Отправить", add: "Добавить", currency: "₸", logout: "Выйти" 
         },
         en: { 
           title: "KAZE", sub: "The Art of Life Control", zenBtn: "🌿 ZEN Mode", pixelBtn: "🕹️ PIXEL Mode", 
-          finance: "Finance", planner: "Planner", dreams: "Dreams", pixelRoom: "Pixel Room", cinema: "Cinema & Anime", mentor: "AI Mentor", 
+          finance: "Finance", planner: "Planner", dreams: "Dreams", pixelRoom: "Pixel Room", capsule: "Time Capsule", cinema: "Cinema & Anime", mentor: "AI Mentor", 
           back: "← Home", send: "Send", add: "Add", currency: "$", logout: "Logout" 
         },
         uz: { 
           title: "KAZE", sub: "Hayotni boshqarish san'ati", zenBtn: "🌿 ZEN Rejimi", pixelBtn: "🕹️ PIXEL Rejimi", 
-          finance: "Moliya", planner: "Reja", dreams: "Orzular", pixelRoom: "Pixel Xona", cinema: "Kino & Anime", mentor: "AI Mentor", 
+          finance: "Moliya", planner: "Reja", dreams: "Orzular", pixelRoom: "Pixel Xona", capsule: "Kapsula", cinema: "Kino & Anime", mentor: "AI Mentor", 
           back: "← Asosiy", send: "Yuborish", add: "Qo'shish", currency: "сўм", logout: "Chiqish" 
         },
         zh: { 
           title: "KAZE", sub: "生活管理的艺术", zenBtn: "🌿 ZEN 模式", pixelBtn: "🕹️ PIXEL 模式", 
-          finance: "财务", planner: "计划", dreams: "梦想", pixelRoom: "像素房间", cinema: "影院与动漫", mentor: "AI 导师", 
+          finance: "财务", planner: "计划", dreams: "梦想", pixelRoom: "像素房间", capsule: "时光胶囊", cinema: "影院与动漫", mentor: "AI 导师", 
           back: "← 首页", send: "发送", add: "添加", currency: "¥", logout: "登出" 
         }
       };
@@ -141,6 +146,17 @@
 
       const toggleTask = (id) => {
         setTasks(tasks.map(item => item.id === id ? { ...item, done: !item.done } : item));
+      };
+
+      const handleAddCapsule = (e) => {
+        e.preventDefault();
+        if (!capTitle || !capContent || !capDate) return;
+        const today = new Date().toISOString().split('T')[0];
+        const isLocked = capDate > today;
+        setCapsules([...capsules, { id: Date.now(), title: capTitle, content: capContent, unlockDate: capDate, locked: isLocked }]);
+        setCapTitle('');
+        setCapContent('');
+        setCapDate('');
       };
 
       return (
@@ -216,30 +232,68 @@
                 )}
 
                 {activeTab === 'home' && (
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
                     <div onClick={() => setActiveTab('finance')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
                       <div class="text-3xl mb-3">💰</div>
-                      <h3 class="font-bold text-base mb-1">{currText.finance}</h3>
+                      <h3 class="font-bold text-sm mb-1">{currText.finance}</h3>
                     </div>
                     <div onClick={() => setActiveTab('planner')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
                       <div class="text-3xl mb-3">📅</div>
-                      <h3 class="font-bold text-base mb-1">{currText.planner}</h3>
+                      <h3 class="font-bold text-sm mb-1">{currText.planner}</h3>
                     </div>
                     <div onClick={() => setActiveTab('dreams')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
                       <div class="text-3xl mb-3">🎯</div>
-                      <h3 class="font-bold text-base mb-1">{currText.dreams}</h3>
+                      <h3 class="font-bold text-sm mb-1">{currText.dreams}</h3>
                     </div>
                     <div onClick={() => setActiveTab('pixelroom')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
                       <div class="text-3xl mb-3">🕹️</div>
-                      <h3 class="font-bold text-base mb-1">{currText.pixelRoom}</h3>
+                      <h3 class="font-bold text-sm mb-1">{currText.pixelRoom}</h3>
+                    </div>
+                    <div onClick={() => setActiveTab('capsule')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
+                      <div class="text-3xl mb-3">✉️</div>
+                      <h3 class="font-bold text-sm mb-1">{currText.capsule}</h3>
                     </div>
                     <div onClick={() => setActiveTab('cinema')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
                       <div class="text-3xl mb-3">🎬</div>
-                      <h3 class="font-bold text-base mb-1">{currText.cinema}</h3>
+                      <h3 class="font-bold text-sm mb-1">{currText.cinema}</h3>
                     </div>
                     <div onClick={() => setActiveTab('mentor')} class="p-5 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:scale-105 transition-all">
                       <div class="text-3xl mb-3">🤖</div>
-                      <h3 class="font-bold text-base mb-1">{currText.mentor}</h3>
+                      <h3 class="font-bold text-sm mb-1">{currText.mentor}</h3>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'capsule' && (
+                  <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
+                    <h2 class="text-2xl font-bold mb-4">✉️ {currText.capsule}</h2>
+                    <form onSubmit={handleAddCapsule} class="space-y-3 mb-6 bg-slate-900/60 p-4 rounded-xl border border-slate-700">
+                      <input type="text" placeholder="Хаттың тақырыбы..." value={capTitle} onChange={(e) => setCapTitle(e.target.value)} class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm" />
+                      <textarea placeholder="Болашақтағы өзіңізге хат жазыңыз..." value={capContent} onChange={(e) => setCapContent(e.target.value)} class="w-full h-24 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm"></textarea>
+                      <div class="flex flex-wrap gap-2 items-center">
+                        <label class="text-xs opacity-75">Ашылатын күні:</label>
+                        <input type="date" value={capDate} onChange={(e) => setCapDate(e.target.value)} class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm" />
+                        <button type="submit" class="ml-auto bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-2 rounded-xl text-sm cursor-pointer">+ Капсуланы бекіту</button>
+                      </div>
+                    </form>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {capsules.map(item => (
+                        <div key={item.id} class="p-4 bg-slate-900 rounded-xl border border-slate-800 relative">
+                          <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-sm">{item.title}</h3>
+                            <span class="text-xs bg-slate-800 px-2 py-1 rounded text-purple-400 font-bold">📅 {item.unlockDate}</span>
+                          </div>
+                          {item.locked ? (
+                            <div class="p-4 bg-slate-950/80 rounded-lg text-center border border-dashed border-slate-700 my-2">
+                              <span class="text-2xl">🔒</span>
+                              <p class="text-xs text-slate-400 mt-1">Бұл капсула {item.unlockDate} күніне дейін құпия болып жабық тұрады!</p>
+                            </div>
+                          ) : (
+                            <p class="text-xs text-slate-300 mt-2 bg-slate-950 p-3 rounded-lg border border-slate-800">{item.content}</p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
