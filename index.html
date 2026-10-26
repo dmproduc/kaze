@@ -43,12 +43,14 @@
       const [finTitle, setFinTitle] = useState('');
       const [finAmount, setFinAmount] = useState('');
 
-      // Dreams (Smart-Копилка) State
       const [dreams, setDreams] = useState([
         { id: 1, title: 'Жаңа ноутбук', targetAmount: 500000, currentAmount: 150000 }
       ]);
       const [dreamTitle, setDreamTitle] = useState('');
       const [dreamTarget, setDreamTarget] = useState('');
+
+      // Pixel Life / RPG State
+      const [pixelUser, setPixelUser] = useState({ level: 1, xp: 40, roomClean: true, energy: 90 });
 
       const [movies] = useState([
         { id: 1, title: 'Hunter x Hunter', genre: 'Аниме / Шытырман', rating: '9.4' },
@@ -57,11 +59,11 @@
       ]);
 
       const t = {
-        kz: { title: "KAZE", sub: "Өмірді басқару өнері", zenBtn: "🌿 ZEN Режимі", pixelBtn: "🕹️ PIXEL Режимі", finance: "Қаржы", planner: "Планер", dreams: "Армандар тақтасы", cinema: "Кинозал & Аниме", mentor: "ЖИ Ментор", back: "← Басты бетке", send: "Жіберу", add: "Қосу" },
-        ru: { title: "KAZE", sub: "Искусство управлять жизнью", zenBtn: "🌿 ZEN Режим", pixelBtn: "🕹️ PIXEL Режим", finance: "Финансы", planner: "Планер", dreams: "Доска мечты", cinema: "Кинозал & Аниме", mentor: "ИИ Ментор", back: "← На главную", send: "Отправить", add: "Добавить" },
-        en: { title: "KAZE", sub: "The Art of Life Control", zenBtn: "🌿 ZEN Mode", pixelBtn: "🕹️ PIXEL Mode", finance: "Finance", planner: "Planner", dreams: "Dream Board", cinema: "Cinema & Anime", mentor: "AI Mentor", back: "← Home", send: "Send", add: "Add" },
-        uz: { title: "KAZE", sub: "Hayotni boshqarish san'ati", zenBtn: "🌿 ZEN Rejimi", pixelBtn: "🕹️ PIXEL Rejimi", finance: "Moliya", planner: "Reja", dreams: "Orzular taxtasi", cinema: "Kino & Anime", mentor: "AI Mentor", back: "← Asosiy", send: "Yuborish", add: "Qo'shish" },
-        zh: { title: "KAZE", sub: "生活管理的艺术", zenBtn: "🌿 ZEN 模式", pixelBtn: "🕹️ PIXEL 模式", finance: "财务", planner: "计划", dreams: "梦想板", cinema: "影院与动漫", mentor: "AI 导师", back: "← 首页", send: "发送", add: "添加" }
+        kz: { title: "KAZE", sub: "Өмірді басқару өнері", zenBtn: "🌿 ZEN Режимі", pixelBtn: "🕹️ PIXEL Режимі", finance: "Қаржы", planner: "Планер", dreams: "Армандар", pixelRoom: "Pixel Бөлме", cinema: "Кинозал & Аниме", mentor: "ЖИ Ментор", back: "← Басты бетке", send: "Жіберу", add: "Қосу" },
+        ru: { title: "KAZE", sub: "Искусство управлять жизнью", zenBtn: "🌿 ZEN Режим", pixelBtn: "🕹️ PIXEL Режим", finance: "Финансы", planner: "Планер", dreams: "Мечты", pixelRoom: "Pixel Комната", cinema: "Кинозал & Аниме", mentor: "ИИ Ментор", back: "← На главную", send: "Отправить", add: "Добавить" },
+        en: { title: "KAZE", sub: "The Art of Life Control", zenBtn: "🌿 ZEN Mode", pixelBtn: "🕹️ PIXEL Mode", finance: "Finance", planner: "Planner", dreams: "Dreams", pixelRoom: "Pixel Room", cinema: "Cinema & Anime", mentor: "AI Mentor", back: "← Home", send: "Send", add: "Add" },
+        uz: { title: "KAZE", sub: "Hayotni boshqarish san'ati", zenBtn: "🌿 ZEN Rejimi", pixelBtn: "🕹️ PIXEL Rejimi", finance: "Moliya", planner: "Reja", dreams: "Orzular", pixelRoom: "Pixel Xona", cinema: "Kino & Anime", mentor: "AI Mentor", back: "← Asosiy", send: "Yuborish", add: "Qo'shish" },
+        zh: { title: "KAZE", sub: "生活管理的艺术", zenBtn: "🌿 ZEN 模式", pixelBtn: "🕹️ PIXEL 模式", finance: "财务", planner: "计划", dreams: "梦想", pixelRoom: "像素房间", cinema: "影院与动漫", mentor: "AI 导师", back: "← 首页", send: "发送", add: "添加" }
       };
 
       const isPixel = mode === 'pixel';
@@ -116,6 +118,8 @@
         if (data && !error) {
           setTasks([data[0], ...tasks]);
           setNewTask('');
+          // Gain XP when task added
+          setPixelUser(prev => ({ ...prev, xp: prev.xp + 15 }));
         } else {
           setTasks([{ id: Date.now(), ...item }, ...tasks]);
           setNewTask('');
@@ -126,6 +130,9 @@
         const newDone = !doneState;
         setTasks(tasks.map(item => item.id === id ? { ...item, done: newDone } : item));
         await supabase.from('tasks').update({ done: newDone }).eq('id', id);
+        if (newDone) {
+          setPixelUser(prev => ({ ...prev, xp: prev.xp + 25 }));
+        }
       };
 
       const handleAddDream = (e) => {
@@ -138,6 +145,7 @@
 
       const addMoneyToDream = (id, amount) => {
         setDreams(dreams.map(d => d.id === id ? { ...d, currentAmount: d.currentAmount + amount } : d));
+        setPixelUser(prev => ({ ...prev, xp: prev.xp + 10 }));
       };
 
       const handleSendMessage = (e) => {
@@ -150,7 +158,7 @@
         setLoadingAi(true);
 
         setTimeout(() => {
-          let reply = `"${userText}" мақсатыңа жету үшін Адамдар тақтасына арманыңды енгізіп, жинай бастаймыз!`;
+          let reply = `"${userText}" сұрағыңыз бойынша KAZE менторы кеңес береді: Жүйелі түрде әрекет етіңіз!`;
           setMessages(prev => [...prev, { sender: 'ai', text: reply }]);
           setLoadingAi(false);
         }, 500);
@@ -201,47 +209,74 @@
 
           <main class="max-w-6xl mx-auto mt-6">
             {activeTab === 'home' && (
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div onClick={() => setActiveTab('finance')} class={`p-5 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">💰</div>
-                  <h3 class="font-bold text-lg mb-1">{t[lang].finance}</h3>
-                  <p class="text-xs opacity-75">Supabase бұлттық қаржысы.</p>
+                  <h3 class="font-bold text-base mb-1">{t[lang].finance}</h3>
+                  <p class="text-xs opacity-75">Supabase қаржысы.</p>
                 </div>
 
                 <div onClick={() => setActiveTab('planner')} class={`p-5 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">📅</div>
-                  <h3 class="font-bold text-lg mb-1">{t[lang].planner}</h3>
-                  <p class="text-xs opacity-75">Супер-планер жүйесі.</p>
+                  <h3 class="font-bold text-base mb-1">{t[lang].planner}</h3>
+                  <p class="text-xs opacity-75">Супер-планер.</p>
                 </div>
 
                 <div onClick={() => setActiveTab('dreams')} class={`p-5 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">🎯</div>
-                  <h3 class="font-bold text-lg mb-1">{t[lang].dreams}</h3>
-                  <p class="text-xs opacity-75">Smart-копилка & мақсаттар.</p>
+                  <h3 class="font-bold text-base mb-1">{t[lang].dreams}</h3>
+                  <p class="text-xs opacity-75">Smart-копилка.</p>
+                </div>
+
+                <div onClick={() => setActiveTab('pixelroom')} class={`p-5 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
+                  <div class="text-3xl mb-3">🕹️</div>
+                  <h3 class="font-bold text-base mb-1">{t[lang].pixelRoom}</h3>
+                  <p class="text-xs opacity-75">RPG персонаж & бөлме.</p>
                 </div>
 
                 <div onClick={() => setActiveTab('cinema')} class={`p-5 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">🎬</div>
-                  <h3 class="font-bold text-lg mb-1">{t[lang].cinema}</h3>
-                  <p class="text-xs opacity-75">Аниме & Кинозал.</p>
+                  <h3 class="font-bold text-base mb-1">{t[lang].cinema}</h3>
+                  <p class="text-xs opacity-75">Аниме & Кино.</p>
                 </div>
 
                 <div onClick={() => setActiveTab('mentor')} class={`p-5 rounded-2xl border cursor-pointer hover:scale-105 transition-all shadow-md ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800/80 border-slate-700'}`}>
                   <div class="text-3xl mb-3">🤖</div>
-                  <h3 class="font-bold text-lg mb-1">{t[lang].mentor}</h3>
-                  <p class="text-xs opacity-75">ЖИ Ақылды Ментор.</p>
+                  <h3 class="font-bold text-base mb-1">{t[lang].mentor}</h3>
+                  <p class="text-xs opacity-75">ЖИ Ментор.</p>
                 </div>
               </div>
             )}
 
-            {/* DREAMS TAB */}
+            {/* PIXEL ROOM TAB */}
+            {activeTab === 'pixelroom' && (
+              <div class={`p-6 rounded-2xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
+                <h2 class="text-2xl font-bold mb-4">🕹️ {t[lang].pixelRoom}</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div class="p-5 bg-slate-900 rounded-xl border border-slate-800 text-center">
+                    <div class="text-6xl mb-3">🧙‍♂️</div>
+                    <h3 class="font-bold text-lg mb-1">KAZE Hero</h3>
+                    <p class="text-xs text-yellow-400 mb-3">Деңгей: {pixelUser.level} (XP: {pixelUser.xp})</p>
+                    <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                      <div class="bg-yellow-400 h-3 rounded-full" style={{ width: `${pixelUser.xp % 100}%` }}></div>
+                    </div>
+                  </div>
+                  <div class="md:col-span-2 p-6 bg-slate-950 rounded-xl border border-slate-800 flex flex-col items-center justify-center">
+                    <div class="text-5xl mb-4">🏠 💻 🛏️ 📺</div>
+                    <p class="text-sm text-center opacity-80 mb-2">Виртуалды пиксельді бөлмеңіз таза және жабдықталған!</p>
+                    <p class="text-xs opacity-60">Тапсырмаларды орындап, XP жинаңыз да, бөлмеңізді жаңа деңгейге көтеріңіз.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'dreams' && (
               <div class={`p-6 rounded-2xl border ${isPixel ? 'bg-purple-900/60 border-pink-500' : 'bg-slate-800 border-slate-700'}`}>
                 <h2 class="text-2xl font-bold mb-4">🎯 {t[lang].dreams}</h2>
                 <form onSubmit={handleAddDream} class="flex flex-wrap gap-2 mb-6">
                   <input 
                     type="text" 
-                    placeholder="Арманның атауы (мысалы: Телевизор)" 
+                    placeholder="Арманның атауы..." 
                     value={dreamTitle}
                     onChange={(e) => setDreamTitle(e.target.value)}
                     class="flex-1 min-w-[200px] bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm"
